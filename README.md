@@ -9,9 +9,13 @@ Most of the settings can be configured via json. Parameter values can be made to
 
 The project is made with;
 
-  * [p5js](https://p5js.org)
-  * [geometric.js](https://github.com/HarryStevens/geometric) 
-  * [bezier.js](https://github.com/Pomax/bezierjs) 
-  * [quadtree-lib](https://github.com/elbywan/quadtree-lib) 
+* [p5js](https://p5js.org)
+* [geometric.js](https://github.com/HarryStevens/geometric) 
+* [bezier.js](https://github.com/Pomax/bezierjs) 
+* [quadtree-lib](https://github.com/elbywan/quadtree-lib) 
 
-To see the project in action and play around; clone the repo, checkout the [develop branch](https://github.com/GoldenQubicle/CityGenerator/tree/develop) and use the vs-code [LiveServer](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension to run it (or any other live server you prefer)
+
+To see the project in action and play around;
+* clone the repo
+* checkout the [develop branch](https://github.com/GoldenQubicle/CityGenerator/tree/develop) 
+* run it with your favorite server. I use the vs-code [LiveServer](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension. 
