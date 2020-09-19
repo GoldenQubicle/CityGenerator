@@ -1,0 +1,160 @@
+{
+    "hasRandomSeed": false,
+    "seed": 632606777972922000,
+    "showCurves": false,
+    "centerMargin": 450,
+    "iterations": 0,
+    "maxNodeSize": 500,
+    "numberOfSeeds": [
+        2,
+        2
+    ],
+    "numberOfSprouts": [
+        3,
+        3
+    ],
+    "sproutDeviation": [
+        45,
+        45
+    ],
+    "Rules": [
+        {
+            "nodeStatus": "Spawn",
+            "functionName": "SingleShot"
+        },
+        {
+            "nodeStatus": "ActiveEnd",
+            "functionName": "SpreadHeading"
+        },
+        {
+            "nodeStatus": "DeadEnd",
+            "functionName": "NodeDeadEnd"
+        },
+        {
+            "nodeStatus": "EverySixth",
+            "functionName": "RandomLeftRightChance"
+        },
+        {
+            "nodeStatus": "Isolated",
+            "functionName": "SproutNodes"
+        },
+        {
+            "nodeStatus": "NoAction",
+            "functionName": "Nothing"
+        }
+    ],
+    "DefaultSegmentLength": {
+        "curveSettings": {
+            "maxResponsePoints": "maxNodeSize",
+            "range": {
+                "min": 0,
+                "max": 30
+            },
+            "bounds": {
+                "lower": {
+                    "start": 15,
+                    "end": 15
+                }
+            },
+            "controlPoints": {
+                "one": {
+                    "x": 0.5,
+                    "y": 0.5
+                }
+            },
+            "isParabola": false
+        }
+    },
+    "SpreadHeading": {
+        "deviation": {
+            "curveSettings": {
+                "maxResponsePoints": "maxNodeSize",
+                "range": {
+                    "min": 0,
+                    "max": 30
+                },
+                "bounds": {
+                    "lower": {
+                        "start": 0,
+                        "end": 0
+                    }
+                },
+                "controlPoints": {
+                    "one": {
+                        "x": 0.5,
+                        "y": 0.5
+                    }
+                },
+                "isParabola": false
+            }
+        }
+    },
+    "RandomLeftRight": {
+        "chance": {
+            "curveSettings": {
+                "maxResponsePoints": "maxNodeSize",
+                "range": {
+                    "min": 0,
+                    "max": 100
+                },
+                "bounds": {
+                    "lower": {
+                        "start": 0,
+                        "end": 100
+                    }
+                },
+                "controlPoints": {
+                    "one": {
+                        "x": 1.02,
+                        "y": 0.0
+                    }
+                },
+                "isParabola": false
+            }
+        },
+        "deviation": {
+            "curveSettings": {
+                "maxResponsePoints": "maxNodeSize",
+                "range": {
+                    "min": 0,
+                    "max": 30
+                },
+                "bounds": {
+                    "lower": {
+                        "start": 0,
+                        "end": 0
+                    }
+                },
+                "controlPoints": {
+                    "one": {
+                        "x": 0.5,
+                        "y": 0.5
+                    }
+                },
+                "isParabola": false
+            }
+        },
+        "angle": {
+            "curveSettings": {
+                "maxResponsePoints": "maxNodeSize",
+                "range": {
+                    "min": 30,
+                    "max": 90
+                },
+                "bounds": {
+                    "lower": {
+                        "start": 35,
+                        "end": 55
+                    }
+                },
+                "controlPoints": {
+                    "one": {
+                        "x": 0,
+                        "y": 1
+                    }
+                },
+                "isParabola": false
+            }
+        }
+    }
+}
