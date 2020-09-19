@@ -4,6 +4,7 @@ Trying my hand at procedural generation, inspired by the likes of [watawatabou](
 <img src="https://raw.githubusercontent.com/GoldenQubicle/CityGenerator/master/gifs/streetplan14.gif" width="512" height="512" />
 
 Most of the settings can be configured via json. Parameter values can be made to change while the generation process chugs along to allow for variation. 
+
 <img src="https://raw.githubusercontent.com/GoldenQubicle/CityGenerator/master/gifs/streetplan12.gif" width="557" height="260" />
 
 The project is made with;
@@ -12,3 +13,5 @@ The project is made with;
   * [geometric.js](https://github.com/HarryStevens/geometric) 
   * [bezier.js](https://github.com/Pomax/bezierjs) 
   * [quadtree-lib](https://github.com/elbywan/quadtree-lib) 
+
+To see the project in action and play around; clone the repo, checkout the [develop branch](https://github.com/GoldenQubicle/CityGenerator/tree/develop) and use the vs-code [LiveServer](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension to run it (or any other live server you prefer)
