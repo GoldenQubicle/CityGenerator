@@ -2,7 +2,7 @@ class ResponseCurve {
     bezier
 
     bezierPoints = []
-    responseValues = [] // { min: value, max: value }
+    responsePoints = [] // { min: value, max: value }
 
     constructor(width, height, name, property) {
         this.width = width
@@ -10,10 +10,8 @@ class ResponseCurve {
         this.name = name
         this.property = property
     }
-    // settings = { controlPoints : { one, two }, range, bounds, isParabola }
-    // see the related methods for object details
-    makeFromSettings(settings) {       
-        // print(settings) 
+
+    makeFromSettings(settings) {
         if (settings.controlPoints.two == undefined) {
             this.makeQuadratic(settings.controlPoints.one, settings.isParabola)
         } else {
@@ -82,22 +80,22 @@ class ResponseCurve {
         return this
     }
 
-    compute(responses) {
+    compute(iterations) {
         this.bezierPoints = this.bezier.getLUT(500)
-        this.responseValues = []
-        this.maxResponsePoints = responses
+        this.responsePoints = []
+        this.iterations = iterations
         // kinda wonky workaround coming up which basically asks;
         // for this given x, what is the corresponing y value on the curve?
         // since there's no direct way in the api to get an answer 
         // we make use of line intersection with the curve for each iteration
-        for (let i = 0; i < this.maxResponsePoints; i++) {
+        for (let i = 0; i < iterations; i++) {
             // the x value we want the corresponding y value for
-            let x = map(i, 0, this.maxResponsePoints, 0, 1)
-            // construct the line, note the y value could potentially not be large enough to find an intersection
+            let x = map(i, 0, iterations, 0, 1)
+            // construct the line, note the y value could potentiall not be large enough to find an intersection
             let start = { x: x, y: -5 }
             let end = { x: x, y: 5 }
             let line = { p1: start, p2: end }
-            // the intersects returns t, i.e. the length along the curve,
+            // the intersects return t, i.e. the length along the curve,
             // which we can use to get the actual point on the curve
             let t = this.bezier.intersects(line)
             let p = this.bezier.get(t)
@@ -115,16 +113,14 @@ class ResponseCurve {
                 valueUpBound = valueLowBound
             }
 
-            this.responseValues[i] = { min: valueLowBound, max: valueUpBound }
+            this.responsePoints[i] = { min: valueLowBound, max: valueUpBound }
         }
-        return this
     }
 
-    // note the layout is pretty much depend width/height ratio ~ 1.3-1.5
+    // note the layout is pretty much depend width/height ~ 1.3-1.5
     display() {
-        // fill('DimGrey')
-        // rect(0, 0, this.width, this.height)
-        noStroke()
+        fill('DimGrey')
+        rect(0, 0, this.width, this.height)
         fill('black')
         textAlign(CENTER)
         textSize(34)
@@ -138,14 +134,12 @@ class ResponseCurve {
         let bY = this.height / 4
         let size = this.height / 2.5
 
-        push()
         //graphic box
         noFill()
         stroke('LightGray')
-        strokeWeight(2)        
-        rectMode(CORNER)
+        strokeWeight(2)
         square(bX, bY, size)
-     
+
         //labels
         noStroke()
         fill('white')
@@ -154,22 +148,20 @@ class ResponseCurve {
         text(this.range.min, bX - 15, bY + size)
         text(this.range.max, bX - 15, bY + 20)
         text(0, bX + 15, bY + size + 30)
-        text(this.maxResponsePoints, bX + size, bY + size + 30)
+        text(this.iterations, bX + size, bY + size + 30)
         textAlign(CENTER)
         text('iterations', bX + size / 2, bY + size + 30)
-        
         // draw the actual response graph
-        this.responseValues.forEach(p => {
+        this.responsePoints.forEach(p => {
             let y1 = map(p.min, this.range.min, this.range.max, bY + size, bY)
             let y2 = map(p.max, this.range.min, this.range.max, bY + size, bY)
-            let i = this.responseValues.indexOf(p)
-            let x = map(i, 0, this.maxResponsePoints, bX, bX + size)
+            let i = this.responsePoints.indexOf(p)
+            let x = map(i, 0, this.iterations, bX, bX + size)
 
             noStroke()
             stroke('Aquamarine')
             line(x, y1, x, y2)
         })
-        pop()
     }
 
     drawBezier() {
@@ -181,7 +173,6 @@ class ResponseCurve {
         noFill()
         stroke('LightGray')
         strokeWeight(2)
-        rectMode(CORNER)
         square(bX, bY, size)
 
         // labels
@@ -191,7 +182,6 @@ class ResponseCurve {
         text(0, bX - 20, bY + size + 30)
         text(1, bX - 20, bY + 20)
         text(1, bX + size + 10, bY + size + 30)
-        
         // draw the actual curve        
         this.bezierPoints.forEach(p => {
             let v = createVector(map(p.x, 0, 1, bX, bX + size), map(p.y, 0, 1, bY + size, bY))

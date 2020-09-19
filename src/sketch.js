@@ -1,84 +1,66 @@
 /// <reference path="../node_modules/@types/p5/global.d.ts" />
 
-let network
-let river
-
-function preload() {
-  networkSettings = loadJSON("data/nws_decent.json")
-}
+let responseCurve
 
 function setup() {
   createCanvas(1024, 1024, P2D)
 
-  river = new River(width, height)
-  network = new Network(width, height)
-
-  networkRules.initialize()
-  nodeStatuses.initialize()
-  responseCurves.initialize(width, height)
-
-  // print(responseCurves)
-  
-  generate()
-}
-
-function generate() {
-  var ticks = ((new Date().getTime() * 10000) + 621355968000000000);
-  let seed = networkSettings.hasRandomSeed ?
-    random(1, ticks) : networkSettings.seed
-
-  randomSeed(seed)
-  console.log("generating seed: " + seed)
-
-  if (networkSettings.hasRiver) {
-    river.generate()
+  let settings = {    
+    controlPoints : {
+      one: { x: .95, y: .15 },
+      // two: { x: .05, y: .5 }
+    },
+    isParabola : false,
+    range : { min: 0, max: 100 },
+    bounds : {
+      lower: { start: 10, end: 60 },
+      upper: { start: 30, end: 75 }
+    }
   }
-  let nwg = "nwg"
-  console.time(nwg)
-  network.generate()
-  console.timeEnd(nwg)
+
+  let range = { min: 0, max: 100 }
+  let bounds = {
+    lower: { start: 10, end: 10 },
+    upper: { start: 30, end: 75 }
+  }
+  let controlPoints = {
+    one: { x: .5, y: .5 },
+    two: { x: .5, y: .5 }
+  }
+  let isParabola = false
+
+  let iterations = 50
+
+  responseCurve = new ResponseCurve(this.width, this.height, "Test Curve", "Test property")
+    .makeFromSettings(settings)
+    // .makeQuadratic(controlPoints.one, isParabola)
+    // .makeCubic(controlPoints.one, controlPoints.two, isParabola)
+    // .setResponseRange(range)
+    // .setResponseBounds(upperBound)
+    // .setResponseBounds(bounds)
+
+  responseCurve.compute(iterations)
+
 }
+
 
 function draw() {
-  background(128)
-  river.display()
-  network.display()
-  if (networkSettings.showCurves) {
-    responseCurves.display()
-  }
 
-  // networkRules[Spawn].debugDraw()
-
-  network.nodes.forEach(n => {
-    if (n.status == ActiveEnd) {
-      networkRules[n.status].debugDraw(n)
-    }
-  })
-
-  // network.stats() 
+  responseCurve.display()
   noLoop()
 }
 
 function keyPressed() {
-  if (key == ' ') {
-    network.iterate()
-    loop()
-  }
-  if (key == 's') {
-    saveJSON(networkSettings, "networkSettings.json")
-  }
+  loop()
 }
 
 function keyReleased() {
-  if (key == 'r') {
-    generate()
-    loop()
-  }
+
 }
 
 function mouseClicked() {
-  network.iterate()
-  loop()
+
+
 }
 
 
