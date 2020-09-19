@@ -18,30 +18,42 @@ let bezier
 
   a step may contain 'from' which MUST be a negative number, indicating 
   from which node to place the next, essentially 'popping' the stack
+  though in this case it's just getting the node by index = lastIndex - n
   
     { angle : a, length: l, from: -n}
 
-  by default the last segment is drawn from the last node to the first node
-  however, it is possible to draw the last segment from any another node
-  by giving the last step a 'closeFrom' property which also MUST be negative. 
+  In addition a step may not place a new node at all,
+  and instead define a new segment between existing nodes
 
-    { angle: a, length: l, closeFrom: -n }
+    { from: -n, to: i }
+  
+  from node is retrieved by index = lastIndex - n
+  to node is retrieved by index = i.
+  This is wonky indeed. 
+
+  
 */
 
 let instructions = [
   { angle: -45, length: 100 },
-  { angle: 90, length: 100, from: -2 },
+  { angle: 90, length: 50, from: -2 },
+  { angle: 0, length: 50 },
   { angle: -65, length: 100 },
   { angle: 50, length: 100 },
-  { angle: 90, length: 100, from: -3 },
-  { angle: -45, length: 100 },
-  { angle: 15, length: 100, from: -2 },
+  { angle: 90, length: 50, from: -3 },
+  { angle: 0, length: 50 },
+  { angle: -45, length: 150},
+  // { from : -1, to: 5},
+  { angle: 15, length: 100, from: -2},
   { angle: -50, length: 100 },
   { angle: 25, length: 100, from: -2 },
   { angle: -35, length: 100 },
-  { angle: 90, length: 100, from: -6 },
+  { angle: 90, length: 50, from: -6 },
+  { angle: 0, length: 50 },
   { angle: -45, length: 100 },
-  { angle: -45, length: 100, closeFrom: -2 }
+  { angle: -45, length: 100 },
+  { from: -3, to: 0 },
+  { from: -7, to: 12 }
 ]
 
 // let instructions = [
@@ -80,21 +92,27 @@ function constructNetwork(steps) {
     // find out which index to use to retrieve the current node
     let index = step.from != undefined ? nodes.length + step.from : nodes.length - 1
     let currentNode = nodes[index]
-    // accumulate the overall angle
-    let angle = angles[index] + radians(step.angle)
-    angles.push(angle)
-    // get the new postion, create the nextNode 
-    let pos = p5.Vector.add(p5.Vector.fromAngle(angle, step.length), currentNode.pos)
-    let nextNode = new Node(pos)
-    nodes.push(nextNode)
-    // finally create the new segment    
-    segments.push(new Segment(currentNode, nextNode))
+
+    if (step.angle != undefined && step.length != undefined) {
+      // accumulate the overall angle
+      let angle = angles[index] + radians(step.angle)
+      angles.push(angle)
+      // get the new postion, create the nextNode 
+      let pos = p5.Vector.add(p5.Vector.fromAngle(angle, step.length), currentNode.pos)
+      let nextNode = new Node(pos)
+      nodes.push(nextNode)
+      // finally create the new segment    
+      segments.push(new Segment(currentNode, nextNode))
+    }
+    if (step.to != undefined) {
+      segments.push(new Segment(nodes[index], nodes[step.to]))
+    }
   })
 
-  //find out how to the index of the node to create the last segment with
-  let lastStep = steps[steps.length - 1]
-  let index = lastStep.closeFrom != undefined ? nodes.length -1 + lastStep.closeFrom : nodes.length - 1
-  segments.push(new Segment(nodes[index], nodes[0]))
+  // //find out how to the index of the node to create the last segment with
+  // let lastStep = steps[steps.length - 1]
+  // let index = lastStep.closeFrom != undefined ? nodes.length - 1 + lastStep.closeFrom : nodes.length - 1
+  // segments.push(new Segment(nodes[index], nodes[0]))
   // print(angles.map(a => degrees(a+radians(90))))
   shapes.push(new Shape(nodes.map(n => n.pos)))
 }
