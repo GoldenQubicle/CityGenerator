@@ -5,9 +5,9 @@ class Shape {
     height
     leftUp
     rightDown
-
-    constructor(vertices) {
-        this.vertices = vertices.map(v => [v.x, v.y])
+    //vertices is p5 vector array
+    constructor(verts) {
+        this.vertices = verts.map(v => [v.x, v.y])
         let bounds = geometric.polygonBounds(this.vertices)
         this.leftUp = createVector(bounds[0][0], bounds[0][1])
         this.rightDown = createVector(bounds[1][0], bounds[1][1])
@@ -15,7 +15,7 @@ class Shape {
         this.height = this.rightDown.y - this.leftUp.y
         this.centerBB = createVector(this.leftUp.x + this.width / 2, this.leftUp.y + this.height / 2)
 
-        this.vertices = geometric.polygonScale(this.vertices, .85)
+        // this.vertices = geometric.polygonScale(this.vertices, .85)
     }
 
     display() {
@@ -30,7 +30,7 @@ class Shape {
         noStroke()
         beginShape()
         // stroke('red')
-        fill(255, 228, 181, 255)
+        fill(255, 228, 181, 100)
         this.vertices.forEach(v => {
             vertex(v[0], v[1])
         })

@@ -81,7 +81,7 @@ class Node {
         // stroke('black')
         // circle(this.pos.x, this.pos.y, 2)
         noStroke()
-
+        fill('white')
         if (this.connections == 1) {
             if (this.isActive)
                 fill('yellow')
@@ -120,7 +120,7 @@ class Node {
             stroke('white')
         }
 
-        circle(this.pos.x, this.pos.y, 3)
+        circle(this.pos.x, this.pos.y, 5)
         // text(this.connections, this.pos.x, this.pos.y)
 
     }
