@@ -1,4 +1,4 @@
-class Segment {
+class Edge {
   constructor(start, end) {
     start.addNeighbor(end)
     end.addNeighbor(start)
@@ -12,23 +12,22 @@ class Segment {
     let height = Math.abs(this.start.pos.y - this.end.pos.y)
     let x = this.start.pos.x < this.end.pos.x ? this.start.pos.x : this.end.pos.x
     let y = this.start.pos.y < this.end.pos.y ? this.start.pos.y : this.end.pos.y
-    return { x: x, y: y, width: width, height: height, segment : this }
+    return { x: x, y: y, width: width, height: height, edge : this }
   }
 
   asLine() {
     return [[this.start.pos.x, this.start.pos.y], [this.end.pos.x, this.end.pos.y]]
   }
 
-  replaceNode(old, repl) {
-    if (this.start == old) {
-      this.end.replaceNeighbor(this.start, repl)
-      this.start = repl
+  replaceNode(nodeOld, nodeNew) {
+    if (this.start == nodeOld) {
+      this.end.replaceNeighbor(this.start, nodeNew)
+      this.start = nodeNew
       this.start.addNeighbor(this.end)
       this.start.updateNoC()
-
     } else {
-      this.start.replaceNeighbor(this.end, repl)
-      this.end = repl
+      this.start.replaceNeighbor(this.end, nodeNew)
+      this.end = nodeNew
       this.end.addNeighbor(this.start)
       this.end.updateNoC()
     }
@@ -52,6 +51,15 @@ class Segment {
     return createVector(0.000001,0).angleBetween(p5.Vector.sub(this.end.pos, this.start.pos))
   }
 
+  getNormals() {
+    let dx = this.end.x - this.start.x
+    let dy = this.end.y - this.start.y
+    return {
+      n1: createVector(dy, -dx).normalize(),
+      n2: createVector(-dy, dx).normalize()
+    };
+  }
+
   display(color) {
     if (color != undefined)
       stroke(color)
@@ -65,13 +73,13 @@ class Segment {
 
 
     //normals from mid point
-    // let m = this.getPointOn(.5)
-    // let normals = getNormalsForLine(this.start.pos, this.end.pos)
-    // let n1 = normals.n1.setMag(100).add(m)
-    // let n2 = normals.n2.setMag(100).add(m)
-    // stroke('white')
-    // line(m.x, m.y, n1.x, n1.y)
-    // line(m.x, m.y, n2.x, n2.y)
+    let m = this.getPointOn(.5)
+    let normals = this.getNormals()
+    let n1 = normals.n1.setMag(100).add(m)
+    let n2 = normals.n2.setMag(100).add(m)
+    stroke('white')
+    line(m.x, m.y, n1.x, n1.y)
+    line(m.x, m.y, n2.x, n2.y)
     
     // fill('yellow')
     // noStroke()
@@ -90,11 +98,3 @@ class Segment {
   }
 }
 
-function getNormalsForLine(start, end) {
-  let dx = end.x - start.x
-  let dy = end.y - start.y
-  return {
-    n1: createVector(dy, -dx).normalize(),
-    n2: createVector(-dy, dx).normalize()
-  };
-}
