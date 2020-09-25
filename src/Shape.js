@@ -23,7 +23,8 @@ class Shape {
         this.drawShape()
         // this.drawCenter()
         // this.drawBoundingBox()
-
+        fill('blue')
+        circle(this.vertices[0][0],this.vertices[0][1], 5)
     }
 
     drawShape() {

@@ -44,6 +44,13 @@ class Segment {
       (this.start == n2 && this.end == n1)
   }
 
+  getPointOn(t){
+    return p5.Vector.lerp(this.start.pos, this.end.pos, t)
+  }
+
+  getAngle(){
+    return createVector(0.000001,0).angleBetween(p5.Vector.sub(this.end.pos, this.start.pos))
+  }
 
   display(color) {
     if (color != undefined)
@@ -54,14 +61,17 @@ class Segment {
     strokeWeight(1)
     line(this.start.pos.x, this.start.pos.y, this.end.pos.x, this.end.pos.y);
 
+    
+
+
     //normals from mid point
-    let m = p5.Vector.lerp(this.start.pos, this.end.pos, .5)
-    let normals = getNormalsForLine(this.start.pos, this.end.pos)
-    let n1 = normals.n1.setMag(100).add(m)
-    let n2 = normals.n2.setMag(100).add(m)
-    stroke('white')
-    line(m.x, m.y, n1.x, n1.y)
-    line(m.x, m.y, n2.x, n2.y)
+    // let m = this.getPointOn(.5)
+    // let normals = getNormalsForLine(this.start.pos, this.end.pos)
+    // let n1 = normals.n1.setMag(100).add(m)
+    // let n2 = normals.n2.setMag(100).add(m)
+    // stroke('white')
+    // line(m.x, m.y, n1.x, n1.y)
+    // line(m.x, m.y, n2.x, n2.y)
     
     // fill('yellow')
     // noStroke()

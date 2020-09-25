@@ -34,38 +34,38 @@ let bezier
   
 */
 
-let instructions = [
-  { angle: -45, length: 100 },
-  { angle: 90, length: 50, from: -2 },
-  { angle: 0, length: 50 },
-  { angle: -65, length: 100 },
-  { angle: 50, length: 100 },
-  { angle: 90, length: 50, from: -3 },
-  { angle: 0, length: 50 },
-  { angle: -45, length: 150 },
-  { angle: 15, length: 100, from: -2 },
-  { angle: -50, length: 100 },
-  { angle: 25, length: 100, from: -2 },
-  { angle: -35, length: 100 },
-  { angle: 90, length: 50, from: -6 },
-  { angle: 0, length: 50 },
-  { angle: -45, length: 100 },
-  { angle: -45, length: 100 },
-  { from: -3, to: 0 },
-  { from: -3, to: 2 },
-  { from: -7, to: 12 }
-]
-
 // let instructions = [
-//   { angle: 75, length: 75 },
-//   { angle: 60, length: 100 },
-//   { angle: 90, length: 20 },
-//   { angle: 60, length: 75 },
-//   { angle: -50, length: 60 },
-//   { angle: 35, length: 50 },
-//   { angle: 75, length: 50 },
-//   { from: -1, to: 0 }
+//   { angle: -25, length: 100 },
+//   { angle: 90, length: 50, from: -2 },
+//   { angle: 0, length: 50 },
+//   { angle: -65, length: 100 },
+//   { angle: 50, length: 100 },
+//   { angle: 90, length: 50, from: -3 },
+//   { angle: 0, length: 50 },
+//   { angle: -45, length: 150 },
+//   { angle: 15, length: 100, from: -2 },
+//   { angle: -50, length: 100 },
+//   { angle: 25, length: 100, from: -2 },
+//   { angle: -35, length: 100 },
+//   { angle: 90, length: 50, from: -6 },
+//   { angle: 0, length: 50 },
+//   { angle: -45, length: 100 },
+//   { angle: -45, length: 100 },
+//   { from: -3, to: 0 },
+//   { from: -3, to: 2 },
+//   { from: -7, to: 12 }
 // ]
+
+let instructions = [
+  { angle: 75, length: 75 },
+  { angle: 60, length: 100 },
+  { angle: 90, length: 20 },
+  { angle: 60, length: 75 },
+  { angle: -50, length: 60 },
+  { angle: 35, length: 50 },
+  { angle: 75, length: 50 },
+  { from: -1, to: 0 }
+]
 
 // simple square example
 // let instructions = [
@@ -79,12 +79,17 @@ function setup() {
   createCanvas(1024, 1024, P2D)
 
   constructNetwork(instructions)
-
+  shapes.push(new Shape([
+    createVector(0, 0),
+    createVector(0, 25),
+    createVector(25, 25),
+    createVector(25, 0)
+  ]))
 }
 
 function constructNetwork(steps) {
   // the starting node
-  nodes.push(new Node(createVector(0, 0)))
+  nodes.push(new Node(createVector(0.00000000001, 0)))
   // as the step angle is relative to the current node we need to accumulate angle over steps  
   // and since 0 degrees is defined as 12 o'clock the first angle is set at -90
   let angles = []
@@ -111,7 +116,7 @@ function constructNetwork(steps) {
     }
   })
 
-  shapes.push(new Shape(nodes.map(n => n.pos)))
+
 }
 
 function draw() {
@@ -119,7 +124,18 @@ function draw() {
 
   push()
   translate(width / 2, height / 2)
-  segments.forEach(s => s.display())
+  segments.forEach(s => {
+    s.display()
+    push()
+    let p = s.getPointOn(.5)
+    let a = s.getAngle()
+    translate(p.x, p.y)
+    rotate(a-radians(0))
+    shapes[0].display()
+
+    pop()
+
+  })
   nodes.forEach(n => n.display())
   // shapes.forEach(s => s.display())
   pop()
