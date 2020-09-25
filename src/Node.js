@@ -69,6 +69,10 @@ class Node {
         this.neighbors.forEach(n => n.updateNoC())
     }
 
+    getOtherNeighbors(node){
+        return this.neighbors.filter(n => n != node)
+    }
+
     posAsNewVector() {
         return createVector(this.pos.x, this.pos.y)
     }

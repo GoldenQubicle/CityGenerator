@@ -1,7 +1,6 @@
 /// <reference path="../node_modules/@types/p5/global.d.ts" />
 
-let segments = []
-let nodes = []
+let network
 let shapes = []
 let bezier
 
@@ -34,61 +33,86 @@ let bezier
   
 */
 
-// let instructions = [
-//   { angle: -25, length: 100 },
-//   { angle: 90, length: 50, from: -2 },
-//   { angle: 0, length: 50 },
-//   { angle: -65, length: 100 },
-//   { angle: 50, length: 100 },
-//   { angle: 90, length: 50, from: -3 },
-//   { angle: 0, length: 50 },
-//   { angle: -45, length: 150 },
-//   { angle: 15, length: 100, from: -2 },
-//   { angle: -50, length: 100 },
-//   { angle: 25, length: 100, from: -2 },
-//   { angle: -35, length: 100 },
-//   { angle: 90, length: 50, from: -6 },
-//   { angle: 0, length: 50 },
-//   { angle: -45, length: 100 },
-//   { angle: -45, length: 100 },
-//   { from: -3, to: 0 },
-//   { from: -3, to: 2 },
-//   { from: -7, to: 12 }
-// ]
-
 let instructions = [
-  { angle: 75, length: 75 },
-  { angle: 60, length: 100 },
-  { angle: 90, length: 20 },
-  { angle: 60, length: 75 },
-  { angle: -50, length: 60 },
-  { angle: 35, length: 50 },
-  { angle: 75, length: 50 },
-  { from: -1, to: 0 }
+  { angle: -25, length: 100 },
+  { angle: 90, length: 50, from: -2 },
+  { angle: 0, length: 50 },
+  { angle: -65, length: 100 },
+  { angle: 50, length: 100 },
+  { angle: 90, length: 50, from: -3 },
+  { angle: 0, length: 50 },
+  { angle: -45, length: 150 },
+  { angle: 15, length: 100, from: -2 },
+  { angle: -50, length: 100 },
+  { angle: 25, length: 100, from: -2 },
+  { angle: -35, length: 100 },
+  { angle: 90, length: 50, from: -6 },
+  { angle: 0, length: 50 },
+  { angle: -45, length: 100 },
+  { angle: -45, length: 100 },
+  { from: -3, to: 0 },
+  { from: -3, to: 2 },
+  { from: -7, to: 12 }
 ]
 
-// simple square example
 // let instructions = [
-//   { angle: 90, length: 100 },
-//   { angle: 90, length: 100 },
-//   { angle: 90, length: 100 },
+//   { angle: 75, length: 75 },
+//   { angle: 60, length: 100 },
+//   { angle: 90, length: 20 },
+//   { angle: 60, length: 75 },
+//   { angle: -50, length: 60 },
+//   { angle: 35, length: 50 },
+//   { angle: 75, length: 50 },
 //   { from: -1, to: 0 }
 // ]
+
+// simple square example
+let square = [
+  { angle: 90, length: 25 },
+  { angle: 90, length: 25 },
+  { angle: 90, length: 25 },
+  { from: -1, to: 0 }
+]
 
 function setup() {
   createCanvas(1024, 1024, P2D)
 
-  constructNetwork(instructions)
-  shapes.push(new Shape([
-    createVector(0, 0),
-    createVector(0, 25),
-    createVector(25, 25),
-    createVector(25, 0)
-  ]))
+  network = constructNetwork(instructions)
+  network = removeDeadEnds(network)
+  shapes.push(new Shape(constructNetwork(square).nodes.map(n => n.pos)))
+}
+
+function removeDeadEnds(network) {
+  let heads = network.nodes.filter(n => n.connections == 1)
+  let toBeRemoved = []
+  heads.forEach(current => {
+    toBeRemoved.push(current)
+    let neighbor = current.neighbors[0]
+    let next = true
+    while (next) {
+      if(!hasMoreThan2Neighbors(neighbor)){
+        toBeRemoved.push(neighbor)
+        let newNeighbor = neighbor.getOtherNeighbors(current)[0]
+        current = neighbor
+        neighbor = newNeighbor
+      } else {
+        next = false
+      }
+    }
+  })
+  network.nodes = network.nodes.filter(n => !toBeRemoved.includes(n))
+  network.segments = network.segments.filter(s => !toBeRemoved.includes(s.start) && !toBeRemoved.includes(s.end) )
+  return network
+}
+
+function hasMoreThan2Neighbors(node) {
+  return node.connections > 2
 }
 
 function constructNetwork(steps) {
   // the starting node
+  let nodes = []
+  let segments = []
   nodes.push(new Node(createVector(0.00000000001, 0)))
   // as the step angle is relative to the current node we need to accumulate angle over steps  
   // and since 0 degrees is defined as 12 o'clock the first angle is set at -90
@@ -115,7 +139,7 @@ function constructNetwork(steps) {
       segments.push(new Segment(nodes[index], nodes[step.to]))
     }
   })
-
+  return { nodes: nodes, segments: segments }
 
 }
 
@@ -124,19 +148,17 @@ function draw() {
 
   push()
   translate(width / 2, height / 2)
-  segments.forEach(s => {
+  network.segments.forEach(s => {
     s.display()
     push()
     let p = s.getPointOn(.5)
     let a = s.getAngle()
     translate(p.x, p.y)
-    rotate(a-radians(0))
+    rotate(a - radians(0))
     shapes[0].display()
-
     pop()
-
   })
-  nodes.forEach(n => n.display())
+  network.nodes.forEach(n => n.display())
   // shapes.forEach(s => s.display())
   pop()
 
