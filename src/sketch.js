@@ -42,9 +42,8 @@ let instructions = [
   { angle: 50, length: 100 },
   { angle: 90, length: 50, from: -3 },
   { angle: 0, length: 50 },
-  { angle: -45, length: 150},
-  // { from : -1, to: 5},
-  { angle: 15, length: 100, from: -2},
+  { angle: -45, length: 150 },
+  { angle: 15, length: 100, from: -2 },
   { angle: -50, length: 100 },
   { angle: 25, length: 100, from: -2 },
   { angle: -35, length: 100 },
@@ -53,6 +52,7 @@ let instructions = [
   { angle: -45, length: 100 },
   { angle: -45, length: 100 },
   { from: -3, to: 0 },
+  { from: -3, to: 2 },
   { from: -7, to: 12 }
 ]
 
@@ -64,6 +64,7 @@ let instructions = [
 //   { angle: -50, length: 60 },
 //   { angle: 35, length: 50 },
 //   { angle: 75, length: 50 },
+//   { from: -1, to: 0 }
 // ]
 
 // simple square example
@@ -71,6 +72,7 @@ let instructions = [
 //   { angle: 90, length: 100 },
 //   { angle: 90, length: 100 },
 //   { angle: 90, length: 100 },
+//   { from: -1, to: 0 }
 // ]
 
 function setup() {
@@ -109,11 +111,6 @@ function constructNetwork(steps) {
     }
   })
 
-  // //find out how to the index of the node to create the last segment with
-  // let lastStep = steps[steps.length - 1]
-  // let index = lastStep.closeFrom != undefined ? nodes.length - 1 + lastStep.closeFrom : nodes.length - 1
-  // segments.push(new Segment(nodes[index], nodes[0]))
-  // print(angles.map(a => degrees(a+radians(90))))
   shapes.push(new Shape(nodes.map(n => n.pos)))
 }
 

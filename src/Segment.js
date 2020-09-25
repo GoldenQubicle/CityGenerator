@@ -55,13 +55,13 @@ class Segment {
     line(this.start.pos.x, this.start.pos.y, this.end.pos.x, this.end.pos.y);
 
     //normals from mid point
-    // let m = p5.Vector.lerp(this.start.pos, this.end.pos, .5)
-    // let normals = getNormalsForLine(this.start.pos, this.end.pos)
-    // let n1 = normals.n1.setMag(10).add(m)
-    // let n2 = normals.n2.setMag(10).add(m)
-    // stroke('white')
-    // line(m.x, m.y, n1.x, n1.y)
-    // line(m.x, m.y, n2.x, n2.y)
+    let m = p5.Vector.lerp(this.start.pos, this.end.pos, .5)
+    let normals = getNormalsForLine(this.start.pos, this.end.pos)
+    let n1 = normals.n1.setMag(100).add(m)
+    let n2 = normals.n2.setMag(100).add(m)
+    stroke('white')
+    line(m.x, m.y, n1.x, n1.y)
+    line(m.x, m.y, n2.x, n2.y)
     
     // fill('yellow')
     // noStroke()
@@ -78,4 +78,13 @@ class Segment {
     //    n1.x, n1.y,
     //    n2.x, n2.y)
   }
+}
+
+function getNormalsForLine(start, end) {
+  let dx = end.x - start.x
+  let dy = end.y - start.y
+  return {
+    n1: createVector(dy, -dx).normalize(),
+    n2: createVector(-dy, dx).normalize()
+  };
 }
