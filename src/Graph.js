@@ -73,8 +73,8 @@
 
 let setup1 = [
     { angle: -25, length: 100 },
-    { angle: 90, length: 70, from: -2 },
-    { angle: 0, length: 50 },
+    { angle: 110, length: 70, from: -2 },
+    { angle: -20, length: 50 },
     { angle: -65, length: 100 },
     { angle: 50, length: 100 },
     { angle: 30, length: 50, from: -3 },
@@ -86,11 +86,17 @@ let setup1 = [
     { angle: -35, length: 100 },
     { angle: 125, length: 75, from: -6 },
     { angle: 0, length: 50 },
-    { angle: -25, length: 100 },
-    { angle: -45, length: 100 },
-    { from: -3, to: 0 },
-    { from: -3, to: 2 },
-    { from: -7, to: 12 }
+    { angle: -25, length: 78 },
+    { angle: -45, length: 50 },
+    { angle: -45, length: 50 },    
+    { angle: 20, length: 50, from: -4 },
+    { angle: 20, length: 70 },
+    { angle: 100, length: 35 },
+    { angle: -20, length: 35 },
+    // { angle : 0, length: 100, from: -8 },
+    { from: -1, to: 0 },    
+    { from: -3, to: 3 },        
+    { from: -12, to: 12 }
 ]
 
 let simplePoly = [
@@ -156,7 +162,7 @@ function removeDeadEnds(network) {
     // and keep track as all those nodes need to go
     network.nodes
         .filter(n => n.connections == 1)
-        .forEach(current => {            
+        .forEach(current => {
             let neighbor = current.neighbors[0]
             let next = true
 
@@ -169,7 +175,7 @@ function removeDeadEnds(network) {
                     current = neighbor
                     neighbor = newNeighbor
                 } else {
-                    neighbor.connections--
+                    neighbor.delNeighbor(current)
                     next = false
                 }
             }

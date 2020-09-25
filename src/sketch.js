@@ -28,15 +28,25 @@ function draw() {
     pop()
   })
 
-  graph.nodes.forEach(n => n.display())  
+  graph.nodes.forEach(n => n.display())
+
+
+  graph.edges
+    .filter(e => e.start.connections >= 3 || e.end.connections >= 3)
+    .forEach(e => {         
+      if (graph.edges.indexOf(e) == 1) {    
+        e.display('red')            
+        let n = e.start.connections >= 3 ? e.start : e.end
+        stroke('black')
+        noFill()
+        circle(n.pos.x, n.pos.y, 15)      
+
+      }
+    })
+
   pop()
 
   shapes.forEach(s => s.display())
-
-
-  
-
-
 
   noLoop()
 }
