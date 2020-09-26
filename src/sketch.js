@@ -24,7 +24,7 @@ function draw() {
     let a = e.getAngle()
     translate(p.x, p.y)
     rotate(a - radians(0))
-    shapes[0].display()
+    // shapes[0].display()
     pop()
   })
 
@@ -41,7 +41,8 @@ function draw() {
   let start = check.node
   // get the first neighbor
   let current = check.node
-  let step = check.neighbors[1].n
+  let step = check.neighbors[0].n
+  let angle = getAngle(start, step)
   let next = true
   let verts = []
   verts.push(current.pos)
@@ -56,39 +57,45 @@ function draw() {
       temp++
       verts.push(step.pos)
       let nextSteps = sortNodesClockwise(step, step.getOtherNeighbors(current)).neighbors
-      let nextStep = nextSteps[nextSteps.length - 1]
+      nextSteps = nextSteps
+        .map(ns => { return { next: ns, angle: getAngle(start, ns.n) } })
+        .filter(ns => ns.angle > angle)
 
-      if (temp == 1) {
-        let a1 = getAngle(start, step)
-        let a2 = getAngle(start, nextSteps[0].n)
-        let a3 = getAngle(start, nextSteps[1].n)
-        print(degrees(a1), degrees(a2), degrees(a3))
+      print(degrees(nextSteps[0].angle), degrees(nextSteps[1].angle), degrees(angle))
+      angle = nextSteps[nextSteps.length-1].angle
+      let nextStep = nextSteps[nextSteps.length-1].next
+      
+      // if (temp == 1) {
+      //   let a1 = getAngle(start, step)
+      //   let a2 = getAngle(start, nextSteps[0].n)
+      //   let a3 = getAngle(start, nextSteps[1].n)
+      //   print(degrees(a1), degrees(a2), degrees(a3))
 
-        //if NaN it means start == the neighbor and closes shape
-        nextStep = isNaN(a2) ? nextSteps[0] :
-          isNaN(a3) ? nextSteps[1] :
-            a2 > a1 ? nextSteps[0] :
-              nextSteps[1]
+      //   //if NaN it means start == the neighbor and closes shape
+      //   nextStep = isNaN(a2) ? nextSteps[0] :
+      //     isNaN(a3) ? nextSteps[1] :
+      //       a2 > a1 ? nextSteps[0] :
+      //         nextSteps[1]
 
 
-        circle(current.pos.x, current.pos.y, 15)
+      //   circle(current.pos.x, current.pos.y, 15)
 
-        fill('green')
-        circle(step.pos.x, step.pos.y, 15)
+      //   fill('green')
+      //   circle(step.pos.x, step.pos.y, 15)
 
-        // print(nextSteps)    
-        nextSteps.forEach(n => {
-          // print(n)
-          let i = nextSteps.indexOf(n)
-          textSize(20)
-          text(i, n.n.pos.x, n.n.pos.y)
-          // circle(n.n.pos.x, n.n.pos.y, 15)          
-        })
+      //   // print(nextSteps)    
+      //   nextSteps.forEach(n => {
+      //     // print(n)
+      //     let i = nextSteps.indexOf(n)
+      //     textSize(20)
+      //     text(i, n.n.pos.x, n.n.pos.y)
+      //     // circle(n.n.pos.x, n.n.pos.y, 15)          
+      //   })
 
-        // circle(nextStep.n.pos.x, nextStep.n.pos.y, 15)          
+      //   // circle(nextStep.n.pos.x, nextStep.n.pos.y, 15)          
 
-        // print(nextStep)
-      }
+      //   // print(nextStep)
+      // }
 
       current = step
       step = nextStep.n
