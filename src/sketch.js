@@ -34,19 +34,19 @@ function draw() {
   let toCheck = graph.nodes
     .filter(n => n.connections >= 3)
     .map(n => sortNodesClockwise(n, n.neighbors))
-  print(toCheck)
+  // print(toCheck)
 
 
-  let check = toCheck[0]
+  let check = toCheck[1]
   let start = check.node
   // get the first neighbor
   let current = check.node
-  let step = check.neighbors[0].n
-  let angle = getAngle(start, step)
+  let step = check.neighbors[1].n
   let next = true
   let verts = []
   verts.push(current.pos)
   let temp = 0
+  let shape = true;
   while (next) {
     if (step.connections == 2) {
       verts.push(step.pos)
@@ -55,59 +55,41 @@ function draw() {
       step = nextStep
     } else {
       temp++
-      verts.push(step.pos)
+      if (verts.includes(step.pos)) {
+        shape = false
+        break;
+      } else {
+        verts.push(step.pos)
+      }
       let nextSteps = sortNodesClockwise(step, step.getOtherNeighbors(current)).neighbors
-      nextSteps = nextSteps
-        .map(ns => { return { next: ns, angle: getAngle(start, ns.n) } })
-        .filter(ns => ns.angle > angle)
+      print(nextSteps)
 
-      print(degrees(nextSteps[0].angle), degrees(nextSteps[1].angle), degrees(angle))
-      angle = nextSteps[nextSteps.length-1].angle
-      let nextStep = nextSteps[nextSteps.length-1].next
-      
-      // if (temp == 1) {
-      //   let a1 = getAngle(start, step)
-      //   let a2 = getAngle(start, nextSteps[0].n)
-      //   let a3 = getAngle(start, nextSteps[1].n)
-      //   print(degrees(a1), degrees(a2), degrees(a3))
-
-      //   //if NaN it means start == the neighbor and closes shape
-      //   nextStep = isNaN(a2) ? nextSteps[0] :
-      //     isNaN(a3) ? nextSteps[1] :
-      //       a2 > a1 ? nextSteps[0] :
-      //         nextSteps[1]
-
-
-      //   circle(current.pos.x, current.pos.y, 15)
-
-      //   fill('green')
-      //   circle(step.pos.x, step.pos.y, 15)
-
-      //   // print(nextSteps)    
-      //   nextSteps.forEach(n => {
-      //     // print(n)
-      //     let i = nextSteps.indexOf(n)
-      //     textSize(20)
-      //     text(i, n.n.pos.x, n.n.pos.y)
-      //     // circle(n.n.pos.x, n.n.pos.y, 15)          
-      //   })
-
-      //   // circle(nextStep.n.pos.x, nextStep.n.pos.y, 15)          
-
-      //   // print(nextStep)
-      // }
-
+      let d1 = createVector(step.pos.x - current.pos.x, step.pos.y - current.pos.y)
+      let d2 = createVector(step.pos.x - nextSteps[0].n.pos.x, step.pos.y - nextSteps[0].n.pos.y)
+      let d3 = createVector(step.pos.x - nextSteps[1].n.pos.x, step.pos.y - nextSteps[1].n.pos.y)
+      let a1 = atan2(d1.x * d2.y - d1.y * d2.x, d1.x * d2.x + d1.y * d2.y)
+      let a2 = atan2(d1.x * d3.y - d1.y * d3.x, d1.x * d3.x + d1.y * d3.y)
+      // a1 = a1 < 0 ? a1 * -1 : a1
+      // a2 = a2 < 0 ? a2 * -1 : a2
+      print(degrees(a1), degrees(a2))
+      let nextStep = a1 < a2 ? nextSteps[0] : nextSteps[1]
+      // let m1 = (step.pos.y - current.pos.y) / (step.pos.x - current.pos.x)
+      // let m2 = (step.pos.y - nextSteps[0].n.pos.y) / (step.pos.x - nextSteps[0].n.pos.x)      
+      // let a = (m2-m1)/ (1 + (m1*m2))
+      // a = a < 0 ? a*-1 + PI : a
+      // print(degrees(atan(2.8)))
+      circle(step.pos.x, step.pos.y, 15)
       current = step
       step = nextStep.n
     }
     if (step == start) {
       next = false
     }
-
   }
-  let s = new Shape(verts)
-  s.display()
-
+  if (shape) {
+    let s = new Shape(verts)
+    s.display()
+  }
   check.neighbors.forEach(n => {
     stroke('black')
     noFill()
