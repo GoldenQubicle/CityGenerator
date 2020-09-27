@@ -39,7 +39,7 @@ function draw() {
     circle(current.pos.x, current.pos.y, 15)
   }
 
-  // shapes = findAllClosedShapes(graph)
+  shapes = findAllClosedShapes(graph)
 
   shapes.forEach(s => s.display())
 
