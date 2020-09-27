@@ -30,85 +30,18 @@ function draw() {
 
   graph.nodes.forEach(n => n.display())
 
-
-  let toCheck = graph.nodes
-    .filter(n => n.connections >= 3)
-    .map(n => sortNodesClockwise(n, n.neighbors))
-  // print(toCheck)
-
-
-  let check = toCheck[1]
-  let start = check.node
-  // get the first neighbor
-  let current = check.node
-  let step = check.neighbors[1].n
-  let next = true
-  let verts = []
-  verts.push(current.pos)
-  let temp = 0
-  let shape = true;
-  while (next) {
-    if (step.connections == 2) {
-      verts.push(step.pos)
-      let nextStep = step.getOtherNeighbors(current)[0]
-      current = step
-      step = nextStep
-    } else {
-      temp++
-      if (verts.includes(step.pos)) {
-        shape = false
-        break;
-      } else {
-        verts.push(step.pos)
-      }
-      let nextSteps = sortNodesClockwise(step, step.getOtherNeighbors(current)).neighbors
-      print(nextSteps)
-
-      let d1 = createVector(step.pos.x - current.pos.x, step.pos.y - current.pos.y)
-      let d2 = createVector(step.pos.x - nextSteps[0].n.pos.x, step.pos.y - nextSteps[0].n.pos.y)
-      let d3 = createVector(step.pos.x - nextSteps[1].n.pos.x, step.pos.y - nextSteps[1].n.pos.y)
-      let a1 = atan2(d1.x * d2.y - d1.y * d2.x, d1.x * d2.x + d1.y * d2.y)
-      let a2 = atan2(d1.x * d3.y - d1.y * d3.x, d1.x * d3.x + d1.y * d3.y)
-      // a1 = a1 < 0 ? a1 * -1 : a1
-      // a2 = a2 < 0 ? a2 * -1 : a2
-      print(degrees(a1), degrees(a2))
-      let nextStep = a1 < a2 ? nextSteps[0] : nextSteps[1]
-      // let m1 = (step.pos.y - current.pos.y) / (step.pos.x - current.pos.x)
-      // let m2 = (step.pos.y - nextSteps[0].n.pos.y) / (step.pos.x - nextSteps[0].n.pos.x)      
-      // let a = (m2-m1)/ (1 + (m1*m2))
-      // a = a < 0 ? a*-1 + PI : a
-      // print(degrees(atan(2.8)))
-      circle(step.pos.x, step.pos.y, 15)
-      current = step
-      step = nextStep.n
-    }
-    if (step == start) {
-      next = false
-    }
+  if (isDetecting) {
+    fill('green')
+    circle(start.pos.x, start.pos.y, 15)
+    fill('orange')
+    circle(step.pos.x, step.pos.y, 15)
+    fill('purple')
+    circle(current.pos.x, current.pos.y, 15)
   }
-  if (shape) {
-    let s = new Shape(verts)
-    s.display()
-  }
-  check.neighbors.forEach(n => {
-    stroke('black')
-    noFill()
-    circle(n.n.pos.x, n.n.pos.y, 15)
-    let i = check.neighbors.indexOf(n)
-    noStroke()
-    fill('white')
-    textSize(25)
-    text(i, n.n.pos.x, n.n.pos.y)
-    // text(degrees(n.a), n.n.pos.x, n.n.pos.y)
-  })
-  stroke('black')
-  noFill()
-  circle(check.node.pos.x, check.node.pos.y, 15)
-
 
   pop()
 
-  shapes.forEach(s => s.display())
+  // shapes.forEach(s => s.display())
 
   noLoop()
 }
@@ -120,7 +53,7 @@ function sortNodesClockwise(current, nodes) {
   let sorted = []
   nodes.forEach(n => {
     let angle = getAngle(current, n)
-    angle += radians(90)
+    // angle += radians(90)
     angle = angle < 0 ? TAU + angle : angle
     sorted.push({ n: n, a: angle })
   })
@@ -142,8 +75,75 @@ function keyReleased() {
 
 }
 
-function mouseClicked() {
 
+function mouseClicked() {
+  detectClosedShape()
+  loop()
+}
+
+let isDetecting = false
+let toCheck
+let check
+let start
+let current
+let step
+let next
+let temp
+let shape
+
+function detectClosedShape() {
+
+  if (!isDetecting) {
+    toCheck = graph.nodes
+      .filter(n => n.connections >= 3)
+      .map(n => sortNodesClockwise(n, n.neighbors))
+    check = toCheck[3]
+    start = check.node
+    // get the first neighbor
+    current = check.node
+    step = check.neighbors[0].n
+    next = true
+    verts = []
+    verts.push(current.pos)
+    temp = 0
+    shape = true;
+    isDetecting = true
+  } else if (isDetecting) {
+    if (step.connections == 2) {
+      verts.push(step.pos)
+      let nextStep = step.getOtherNeighbors(current)[0]
+      current = step
+      step = nextStep
+    } else {
+      // construct line & get angle from step-current, both are used to consider where to go next
+      let line = [[step.pos.x, step.pos.y], [current.pos.x, current.pos.y]]
+      let lineAngle = geometric.lineAngle(line)
+      // since going clockwise we only want neighbors to the right of line
+      let neighbors = step.getOtherNeighbors(current)
+      neighbors = lineAngle < 0 ?
+       neighbors.filter(n => geometric.pointLeftofLine(n.asPoint(), line)) :
+       neighbors.filter(n => geometric.pointRightofLine(n.asPoint(), line))
+      //now make line angle absoluut, i.e. 0-360
+      lineAngle = lineAngle < 0 ? 360 + lineAngle : lineAngle
+      // determine angle between the line, and possible next steps      
+      // by constructing line & get angles for all options      
+      let nextSteps = neighbors.map(n => {
+        let l = [[step.pos.x, step.pos.y], [n.pos.x, n.pos.y]]        
+        let a = geometric.lineAngle(l)
+        a = a < 0 ? 360 + a : a
+        a = lineAngle - a
+        return { node: n, angle: a }
+      }).sort((n1, n2) => n1.angle < n2.angle ? -1 : 1)
+     
+      // print(nextSteps)
+      
+      current = step
+      step = nextSteps[0].node
+    }
+    if (step == start) {
+     print("found shape!")
+    }
+  }
 }
 
 

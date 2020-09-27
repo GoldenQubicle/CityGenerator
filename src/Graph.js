@@ -15,6 +15,7 @@
             heading : () -> angle
             rotate : (angle)
             asQuadTreeObject : () -> {x, y, node}
+            asPoint : () -> [x,y]
             getCollider : (size) -> {x, y, w, h}
             setStatus : ()
             updateNoC : ()

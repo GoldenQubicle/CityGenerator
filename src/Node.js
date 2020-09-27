@@ -23,6 +23,10 @@ class Node {
         return { x: this.pos.x, y: this.pos.y, node: this }
     }
 
+    asPoint(){
+        return [this.pos.x, this.pos.y]
+    }
+
     getCollider(size) {
         let x = this.pos.x - size / 2
         let y = this.pos.y - size / 2
