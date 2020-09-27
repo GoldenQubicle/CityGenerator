@@ -23,6 +23,10 @@ class Node {
         return { x: this.pos.x, y: this.pos.y, node: this }
     }
 
+    asPoint(){
+        return [this.pos.x, this.pos.y]
+    }
+
     getCollider(size) {
         let x = this.pos.x - size / 2
         let y = this.pos.y - size / 2
@@ -69,6 +73,10 @@ class Node {
         this.neighbors.forEach(n => n.updateNoC())
     }
 
+    getOtherNeighbors(node){
+        return this.neighbors.filter(n => n != node)
+    }
+
     posAsNewVector() {
         return createVector(this.pos.x, this.pos.y)
     }
@@ -81,7 +89,7 @@ class Node {
         // stroke('black')
         // circle(this.pos.x, this.pos.y, 2)
         noStroke()
-
+        fill('white')
         if (this.connections == 1) {
             if (this.isActive)
                 fill('yellow')
@@ -120,7 +128,7 @@ class Node {
             stroke('white')
         }
 
-        circle(this.pos.x, this.pos.y, 3)
+        circle(this.pos.x, this.pos.y, 5)
         // text(this.connections, this.pos.x, this.pos.y)
 
     }

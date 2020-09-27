@@ -262,7 +262,7 @@ class Network {
         this.nodes.forEach(n => {
             // textSize(5)
             // text(this.nodes.indexOf(n), n.pos.x, n.pos.y)
-            // n.display()
+            n.display()
             // NetworkRules[n.status].debugDraw(n)
         })
         // this.bridges.forEach(b =>{
