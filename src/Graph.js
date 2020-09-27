@@ -225,9 +225,9 @@ function detectShape(start, step, shapes) {
     }
     if (step.connections == 2) {
       let nextStep = step.getOtherNeighbors(current)[0]
-      if(nextStep == undefined){
-        break
-      }
+      // if(nextStep == undefined){
+      //   break
+      // }
       current = step
       step = nextStep
     } else {      
@@ -236,6 +236,7 @@ function detectShape(start, step, shapes) {
       let lineAngle = geometric.lineAngle(line)
       // since going clockwise we only want neighbors to the right of line
       let neighbors = step.getOtherNeighbors(current)
+      print(lineAngle)
       neighbors = lineAngle < 0 ?
         neighbors.filter(n => geometric.pointLeftofLine(n.asPoint(), line)) :
         neighbors.filter(n => geometric.pointRightofLine(n.asPoint(), line))
@@ -250,7 +251,7 @@ function detectShape(start, step, shapes) {
         a = lineAngle - a
         return { node: n, angle: a }
       }).sort((n1, n2) => n1.angle < n2.angle ? -1 : 1)
-
+ 
       if (nextSteps.length == 0) {
         return
       }
