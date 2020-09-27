@@ -155,13 +155,13 @@ function constructGraph(steps) {
     return { nodes: nodes, edges: edges }
 }
 
-function removeDeadEnds(network) {
+function removeDeadEnds(graph) {
     let toBeRemoved = []
 
     // go over all nodes with 1 connection
     // foreach head follow neighbors with 2 connections
     // and keep track as all those nodes need to go
-    network.nodes
+    graph.nodes
         .filter(n => n.connections == 1)
         .forEach(current => {
             let neighbor = current.neighbors[0]
@@ -182,8 +182,89 @@ function removeDeadEnds(network) {
             }
         })
     // filter out the nodes to be removed
-    network.nodes = network.nodes.filter(n => !toBeRemoved.includes(n))
-    network.edges = network.edges.filter(s => !toBeRemoved.includes(s.start) && !toBeRemoved.includes(s.end))
+    graph.nodes = graph.nodes.filter(n => !toBeRemoved.includes(n))
+    graph.edges = graph.edges.filter(s => !toBeRemoved.includes(s.start) && !toBeRemoved.includes(s.end))
 
-    return network
+    return graph
 }
+
+
+function findAllClosedShapes(g) {
+    let shapes = []
+    let toCheck = g.nodes
+      .filter(n => n.connections >= 3)
+      .map(n => sortNodesClockwise(n, n.neighbors))
+  
+    // let index = 0
+    // let start = toCheck[index]
+    // let step = toCheck[index].neighbors.reverse()[1]
+    // detectShape(start.node, step.node, shapes)
+  
+    while (toCheck.length > 0) {
+      let start = toCheck.pop()
+      start.neighbors.reverse() // reverse to pop, still in clockwise order
+  
+      while (start.neighbors.length > 0) {
+        let step = start.neighbors.pop()
+        detectShape(start.node, step.node, shapes)
+      }
+    }
+    return shapes
+  }
+  
+  function detectShape(start, step, shapes) {
+    let verts = []
+    let visited = []
+    let current = start
+    let next = true
+    verts.push(start.pos)
+  
+    while (next) {
+      if (visited.includes(step)) {
+        return
+      } else {
+        visited.push(step)
+        verts.push(step.pos)
+      }
+      if (step.connections == 2) {
+        let nextStep = step.getOtherNeighbors(current)[0]
+        current = step
+        step = nextStep
+      } else {
+        // construct line & get angle from step-current, both are used to consider where to go next
+        let line = [[step.pos.x, step.pos.y], [current.pos.x, current.pos.y]]
+        let lineAngle = geometric.lineAngle(line)
+        // since going clockwise we only want neighbors to the right of line
+        let neighbors = step.getOtherNeighbors(current)
+        neighbors = lineAngle < 0 ?
+          neighbors.filter(n => geometric.pointLeftofLine(n.asPoint(), line)) :
+          neighbors.filter(n => geometric.pointRightofLine(n.asPoint(), line))
+        //now make line angle absolute, i.e. from 0-360
+        lineAngle = lineAngle < 0 ? 360 + lineAngle : lineAngle
+        // determine angle between the line, and possible next steps      
+        // by constructing line & get angles for all options      
+        let nextSteps = neighbors.map(n => {
+          let l = [[step.pos.x, step.pos.y], [n.pos.x, n.pos.y]]
+          let a = geometric.lineAngle(l)
+          a = a < 0 ? 360 + a : a
+          a = lineAngle - a
+          return { node: n, angle: a }
+        }).sort((n1, n2) => n1.angle < n2.angle ? -1 : 1)
+  
+        if (nextSteps.length == 0) {
+          return
+        }
+        current = step
+        step = nextSteps[0].node
+      }
+      if (step == start) {
+        // find out if the shape found already exists, if not push it
+        let shape = new Shape(verts)
+        let duplicates = shapes.filter(s => s.hasSameCenter(shape))      
+        if (duplicates.length == 0) {
+          shapes.push(shape)
+        }
+        return
+      }
+    }
+  }
