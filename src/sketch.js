@@ -4,7 +4,7 @@ let network
 let river
 let shapes = []
 function preload() {
-  networkSettings = loadJSON("data/nws_grid.json")
+  networkSettings = loadJSON("data/nws_decent.json")
 }
 
 function setup() {

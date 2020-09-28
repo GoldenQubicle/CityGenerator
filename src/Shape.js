@@ -30,7 +30,7 @@ class Shape {
         noStroke()
         beginShape()
         // stroke('red')
-        fill(255, 228, 181, 255)
+        fill(255, 228, 181, 128)
         this.vertices.forEach(v => {
             vertex(v[0], v[1])
         })
