@@ -236,7 +236,7 @@ function detectShape(start, step, shapes) {
       let lineAngle = geometric.lineAngle(line)
       // since going clockwise we only want neighbors to the right of line
       let neighbors = step.getOtherNeighbors(current)
-      print(lineAngle)
+      // print(lineAngle)
       neighbors = lineAngle < 0 ?
         neighbors.filter(n => geometric.pointLeftofLine(n.asPoint(), line)) :
         neighbors.filter(n => geometric.pointRightofLine(n.asPoint(), line))
