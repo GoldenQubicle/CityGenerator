@@ -80,11 +80,11 @@ function detectClosedShape() {
     toCheck = graph.nodes
       .filter(n => n.connections >= 3)
       .map(n => sortNodesClockwise(n, n.neighbors))
-    check = toCheck[1]
+    check = toCheck[5]
     start = check.node
     // get the first neighbor
     current = check.node
-    step = check.neighbors[3].node
+    step = check.neighbors[2].node
     next = true
     verts = []
     verts.push(current.pos)
@@ -95,6 +95,8 @@ function detectClosedShape() {
   }
   // while (isDetecting) {
   else if (isDetecting) {
+    temp++
+    print(`--------step ${temp}----------`)
     if (visited.includes(step)) {
       print("already been here!")
       isDetecting = false
@@ -109,36 +111,47 @@ function detectClosedShape() {
       step = nextStep
     } else {
       verts.push(step.pos)
-      // construct line & get angle from step-current, both are used to consider where to go next
+
+      // this works in grid setup, however incredibly weird
+      // essentially, facing backwards from the step, ask for points to left
+      // instead of facing forwards and ask for points to the right
       let line = [[step.pos.x, step.pos.y], [current.pos.x, current.pos.y]]
-      let lineAngle = geometric.lineAngle(line)
-      // since going clockwise we only want neighbors to the right of line
+      let lineAngle = round(geometric.lineAngle(line))
+      print("line angle:", lineAngle)
       let neighbors = step.getOtherNeighbors(current)
-      neighbors = lineAngle < 0 ?
-        neighbors.filter(n => geometric.pointLeftofLine(n.asPoint(), line)) :
-        neighbors.filter(n => geometric.pointRightofLine(n.asPoint(), line))
-      //now make line angle absoluut, i.e. 0-360
-      lineAngle = lineAngle < 0 ? 360 + lineAngle : lineAngle
-      // determine angle between the line, and possible next steps      
-      // by constructing line & get angles for all options      
+      if (lineAngle > 0 && lineAngle < 180) {
+        neighbors = neighbors.filter(n => geometric.pointRightofLine(n.asPoint(), line))
+      } else {
+        neighbors = neighbors.filter(n => geometric.pointLeftofLine(n.asPoint(), line))
+      }
+      print("neighbors found:", neighbors)
+
+      // lineAngle = lineAngle == 0 ? 360 : lineAngle < 0 ? 360 + lineAngle : lineAngle      
+      print("adjusted line angle", lineAngle)  
+
       let nextSteps = neighbors.map(n => {
         let l = [[step.pos.x, step.pos.y], [n.pos.x, n.pos.y]]
-        let a = geometric.lineAngle(l)
-        a = a < 0 ? 360 + a : a
-        a = lineAngle - a
+        let a = round(geometric.lineAngle(l))
+        a = a == -0 || a == -180 ? a * -1 : a // needed for grid angles
+        print("option angle ", round(a))
+        a = lineAngle < 0 && a < 0 ? 360 + a : a
+        print("adjusted option angle ", round(a))
+
+        // print("abs angle ", a, "line angle", lineAngle)        
+        a = (lineAngle - a)
         return { node: n, angle: a }
       }).sort((n1, n2) => n1.angle < n2.angle ? -1 : 1)
-
       if (nextSteps.length == 0) {
         isDetecting = false
         return
       }
-
+      print("angle sorted options:", nextSteps)
       current = step
       step = nextSteps[0].node
     }
     if (step == start) {
       print("found shape!")
+      print(verts)
       shapes.push(new Shape(verts))
       isDetecting = false
       return
