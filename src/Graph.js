@@ -295,6 +295,8 @@ function detectShape(start, step, shapes) {
       let lineAngle = round(geometric.lineAngle(line))
       print("line angle:", lineAngle)
       let neighbors = step.getOtherNeighbors(current)
+      // let sorted = sortNodesClockwise(step, neighbors)
+      // print(sorted)
       if (lineAngle > 0 && lineAngle < 180) {
         neighbors = neighbors.filter(n => geometric.pointRightofLine(n.asPoint(), line))
       } else {

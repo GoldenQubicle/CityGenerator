@@ -6,7 +6,7 @@ let shapes = []
 function setup() {
   createCanvas(1024, 1024, P2D)
 
-  graph = constructGraph(setup1)
+  graph = constructGraph(grid)
   // graph = removeDeadEnds(graph)
   // shapes.push(new Shape(constructGraph(square).nodes.map(n => n.pos)))
 }
@@ -22,8 +22,9 @@ function draw() {
     push()
     let p = e.getPointOn(.5)
     let a = e.getAngle()
+    // shapes[0].pos    
     translate(p.x, p.y)
-    rotate(a - radians(0))
+    rotate(a)
     // shapes[0].display()
     pop()
   })
@@ -80,11 +81,11 @@ function detectClosedShape() {
     toCheck = graph.nodes
       .filter(n => n.connections >= 3)
       .map(n => sortNodesClockwise(n, n.neighbors))
-    check = toCheck[5]
+    check = toCheck[0]
     start = check.node
     // get the first neighbor
     current = check.node
-    step = check.neighbors[2].node
+    step = check.neighbors[0].node
     next = true
     verts = []
     verts.push(current.pos)
@@ -119,6 +120,8 @@ function detectClosedShape() {
       let lineAngle = round(geometric.lineAngle(line))
       print("line angle:", lineAngle)
       let neighbors = step.getOtherNeighbors(current)
+      // let sorted = sortNodesClockwise(step, neighbors)
+      // print(sorted)
       if (lineAngle > 0 && lineAngle < 180) {
         neighbors = neighbors.filter(n => geometric.pointRightofLine(n.asPoint(), line))
       } else {

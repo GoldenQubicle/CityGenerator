@@ -7,7 +7,7 @@ function sortNodesClockwise(current, nodes) {
       let angle = getAngle(current, n)
       // angle += radians(90)
       angle = angle < 0 ? TAU + angle : angle
-      sorted.push({ node: n, a: angle })
+      sorted.push({ node: n, a: degrees(angle) })
     })
     sorted.sort((n1, n2) => n1.a < n2.a ? -1 : 1)
     return { node: current, neighbors: sorted }
