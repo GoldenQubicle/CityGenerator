@@ -256,7 +256,7 @@ class Network {
 
         // this.traceThroughRoutes()
 
-        this.detectClosedShapes()
+        // this.detectClosedShapes()
         
         this.segments.forEach(l => l.display())
         this.nodes.forEach(n => {

@@ -273,7 +273,7 @@ function detectShape(start, step, shapes) {
   verts.push(start.pos)
 
   while (next) {
-    if (visited.includes(step) || step == undefined) {
+    if (visited.includes(step)) {
       print("already been here!")
       isDetecting = false
       return
@@ -293,25 +293,27 @@ function detectShape(start, step, shapes) {
       // instead of facing forwards and ask for points to the right
       let line = [[step.pos.x, step.pos.y], [current.pos.x, current.pos.y]]
       let lineAngle = round(geometric.lineAngle(line))
-      // print("line angle:", lineAngle)
+      print("line angle:", lineAngle)
       let neighbors = step.getOtherNeighbors(current)
+      // let sorted = sortNodesClockwise(step, neighbors)
+      // print(sorted)
       if (lineAngle > 0 && lineAngle < 180) {
         neighbors = neighbors.filter(n => geometric.pointRightofLine(n.asPoint(), line))
       } else {
         neighbors = neighbors.filter(n => geometric.pointLeftofLine(n.asPoint(), line))
       }
-      // print("neighbors found:", neighbors)
+      print("neighbors found:", neighbors)
 
       // lineAngle = lineAngle == 0 ? 360 : lineAngle < 0 ? 360 + lineAngle : lineAngle      
-      // print("adjusted line angle", lineAngle)  
+      print("adjusted line angle", lineAngle)  
 
       let nextSteps = neighbors.map(n => {
         let l = [[step.pos.x, step.pos.y], [n.pos.x, n.pos.y]]
         let a = round(geometric.lineAngle(l))
         a = a == -0 || a == -180 ? a * -1 : a // needed for grid angles
-        // print("option angle ", round(a))
+        print("option angle ", round(a))
         a = lineAngle < 0 && a < 0 ? 360 + a : a
-        // print("adjusted option angle ", round(a))
+        print("adjusted option angle ", round(a))
 
         // print("abs angle ", a, "line angle", lineAngle)        
         a = (lineAngle - a)
@@ -321,7 +323,7 @@ function detectShape(start, step, shapes) {
         isDetecting = false
         return
       }
-      // print("angle sorted options:", nextSteps)
+      print("angle sorted options:", nextSteps)
       current = step
       step = nextSteps[0].node
     }
