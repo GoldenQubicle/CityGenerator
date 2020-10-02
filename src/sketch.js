@@ -42,7 +42,7 @@ function generate() {
   // graph = removeDeadEnds(graph)
   // network.nodes = graph.nodes
   // network.segments = graph.edges
-  shapes = findAllClosedShapes(graph) 
+  // shapes = findAllClosedShapes(graph) 
 }
 
 function draw() {
