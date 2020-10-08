@@ -1,3 +1,4 @@
+// ctor Node, Node
 class Edge {
   constructor(start, end) {
     start.addNeighbor(end)

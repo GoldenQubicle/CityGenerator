@@ -1,0 +1,1146 @@
+OLD:
+  ☐ generate a city like street network @created(20-07-13 14:40)
+
+  the basis atm is  a combination of Node and Segment (i.e. edge) and some form of
+  a l-system type system. That is, based on the number of connections a node has (the symbols)
+  a function is executed (the procedure). There're no constants yet, so it's not really a full blown
+  formal syntax. 
+
+  TODO:    
+    ✔ make Node context aware, and signal its status to trigger rules @created(20-07-13 14:41) @done(20-07-18 16:05)
+    so possible use case scenario; spawn a long strecht of segments
+    when a node has neighbors 2 removed with 2 connections, it spawns a branch. 
+  
+    n-n-n-n     no spawn yet ; NoC 2, nNoC 2,1  = 5
+
+    n-n-n-n-n   middle node ; NoC 2, nNoc 2,2 = 6, spawns because its neighbors, and their neighbors, have 2 or less connections
+        |
+        
+    The question here is how to handle this, or rather how to communicate the status. Just the number of connections
+    itself is not sufficient. It's easy to imagine some weighting factor, like based on distance between nodes.
+    So the number of connections (NoC) would act as a switch, and the weighting factor (WF) would be a probability I guess, 
+    though at the moment I would prefer a deterministic system. So I could opt for to, for example, sum the NoC over all 
+    neighbors (see example above). 
+    
+    Though the obviously, different configurations could arrive at the same number.. for example a node with 3 dead end neighbors
+    NoC 3, nNoC 1,1,1 = 6 Then again, that's only possible for the seed node
+    NoC 1, nNoc, 5 = 6 very much possible
+    
+    hm yeah.. obvious problem is obvious, combinatorial complexity, i.e. does not uniquely identify the status
+    then again, a street network typically consists of intersection with 4 or less. Like a 7 way intersection would 
+    probably really stand out as unrealistic so ..
+
+    NoC 7, nNoc > 7 => <14
+    NoC 6, nNoc > 6 => <12
+
+    NoC 4, nNoc 2,1,1,1     9
+    NoC 4, nNoc 2,2,1,1     10
+    NoC 4, nNoc 2,2,2,1     11
+    NoC 4, nNoc 2,2,2,2     12 => this would signal kinda of an important intersection since no neighbor has any intersection.?
+    NoC 4, nNoc 4,4,4,4     20 => this signal a full blown grid
+    hm I feel like this actually could work, depending on how deep the calculation takes place, i.e. how many nodes removed
+    and even THAT could be changed dynamically, like, if a NNoC reaches a threshold, it takes another level of nodes into account
+    and this information could also be used locally, like, does this node, or any of it's neighbors has a connection to a node
+    with a NNoC higher than N? If no, it must be in a pretty outer part of the network, thus rules Y goes over rule Z
+
+    this should probably also take the length and angle / heading / direction whatever of the context into account, 
+    such that a new node can be spawned to a specific position informed by the context
+
+    ✔ seperate iterations states @created(20-07-13 14:53) @started(20-07-14 12:17) @done(20-07-14 12:37) @lasted(20m8s)
+      atm in each iteration the nodes are pushed into the same array
+      meaning, newly added nodes get evaluated in the same iteraton
+      and older nodes do not update their context based on the new nodes
+      ✔ update function, probably @created(20-07-13 15:37) @done(20-07-14 12:37)
+      and make it change the NoC itself so we don't need to set that manually in each push
+      
+    ✘ consider moving Segment and Node together @created(20-07-13 18:47) @cancelled(24-07-2020 19:56)
+      would it offer any benefits? could segments contain neighbor segments? 
+      would that offer benefit, e.g. faster length lookup?
+
+    ✔ radius check node @created(20-07-15 20:16) @done(20-07-18 14:59)
+      either make it stop growing when in vicinity of another node, or self-connect
+    ✔ make node able to stop growing out @created(20-07-15 20:17) @done(20-07-18 14:59)
+
+    ✘ performance issue @created(20-07-18 15:00) @cancelled(20-07-18 16:22)
+    so basically, atm its checking every node every iteration while nothing significant has changed..
+    so I'd like a system wherein changes are tracked, somehow
+
+    ✘ qnd gui @created(20-07-18 18:53) @cancelled(24-07-2020 19:56)
+
+    ✔ use random seed @created(20-07-18 18:38) @done(20-07-18 18:39)
+
+    ✔ add geographical features @created(20-07-20 18:28) @done(01-08-2020 14:59)
+      ✔ river @created(20-07-20 21:37) @done(01-08-2020 14:58)
+       ✔ new rule set to follow heading, maybe fork @created(20-07-20 21:40) @done(20-07-24 17:29)
+       ✔ offset for width and/or generate hull @created(20-07-20 21:40) @done(25-07-2020 17:32)
+       ✔ check point in polygon when generating network @created(20-07-20 21:40) @done(25-07-2020 18:26)
+       ✔ design rule to follow if yes @created(20-07-20 21:40) @done(01-08-2020 14:58)
+           possible option to take when encountering water
+          ✘ do nothing and continue, i.e. current situation @cancelled(31-07-2020 14:43)
+          ✔ increment / decrement length and / or angle @done(31-07-2020 14:43)
+          ✔ if no land can be found, or too short a segment, flag the current node as being 'inactive' (connections = 99 ?) @done(01-08-2020 14:58)
+          ✔ if increment length and land is found, either bridge it, or just place node on opposite bank? @done(31-07-2020 14:43)
+
+          so for following the river bank, what if it were the river which pushed back, so to speak?
+          as in, the river has a certain detection zone, and signals an angle to follow
+          if a to-be-placed node gets within said offset zone
+
+          also for brides, obviously want to cross a river pretty much perpendicular to it
+          and not in a diagonal fashion as is currently happening.
+          So, either I want to follow the river bank. 
+          or I  want to cross a river at an 90 degree angle
+          Wherein bridge placement could be a function of overall network work size and bridge tally, e.g.
+            if nodes < 10 && bridges < 1, place a bridge
+            if nodes > 30 && < 60 && bridges >= 4, follow bank
+
+          so the obvious thing to figure out is how to steer the angle based on the river shape 
+
+          do ok, can at least bridge a river perpendicular to a node
+          however need to ;
+          keep track of bridges, in relation to network size 
+          somehow override (?) the get angle function in config in case of water.. => doable
+
+          issues;
+          when determining the clostest river points per node. 
+          there's a chance one of the points is on the opposite river bank
+          which makes for weird bridge placement
+
+          ✘ figure out how to determine which river bank to use for orientation @created(30-07-2020 14:38) @cancelled(31-07-2020 17:59)
+            yep I definitly need this, not just to eliminate the problem that the closest river point
+            may be on the opposite bank. Also need it in order to help with the random right-left rule
+            which leads to undesirable results. Sometimes just a cramped mess, moreover sometimes actually
+            still somehow managing to land in water?! not fun. 
+
+          ✘ keep a minimum distance from river bank @created(31-07-2020 14:42) @cancelled(31-07-2020 17:59)
+          network can come really super close and I dont like it
+
+    ✔ refactor generated to use a getAngle function @created(27-07-2020 16:16) @started(27-07-2020 16:37) @done(27-07-2020 17:53) @lasted(1h16m18s)
+      this way, spawn, followHeading and randomLeftRight can be collapsed into a single funtion
+
+    ✔ intersection check config @created(24-07-2020 19:53) @started(25-07-2020 15:57) @done(25-07-2020 17:33) @lasted(1h36m8s)
+      when regenerating a segment to fit it should use the appropriate config for angle, length, etc
+
+     ✔ @critical river and network interaction @created(24-07-2020 19:39) @done(25-07-2020 15:57)
+     basically the order in which they're called matters for the resulting outcome
+     obviously this should not happen, I suspect the generator still keeping some global reference
+
+     alright so thing is; it matters how many times random() gets called. As in, if the network iteration 
+     makes a 100 randmom calls, river init will make 101 ths
+     if network makes 2 calls, river init will make the 3rd 
+     this will give a different result than the 101 call and thus the start position make be different
+
+     so it makes sense but is super annoying because I want the same rivier each time, indepent how many iterations the network has done. 
+    
+
+  Evaluation : @created(01-08-2020 14:59)
+    so, adding a river actually was a lot more involved than I anticipated, and at the moment it's nowhere near the level I'd like. 
+    That is, there's a number of bugs and inconsistencies present in the generation routine of the network which causes reason for pause. 
+    Like, I could probably fix them in the current design, however that will end up being a lot bandages. 
+    So, a little bit of architecture geek out is in order.
+    The main thing I'm not liking about how things are shaping is that the generator is starting to contain quite a bit of logic 
+    as to how the network should interact with the water. Like overriding the getAngle function on the config already was a bit iffy, 
+    but now I'm having another issue with random left or right, which again could be solved by tacking more things on the config. 
+    However, at this point it should just be acknowledged that the water is, in fact, a dependency for the network. 
+    To put another way, the network has a dependency on the water such that, in the case of random-left-right I can write something like;
+    if in water, angle*-1 and regenerate positon. 
+    i.e. the rules are becoming the spread out over multiple files, the responsability for them is watered down (eheh, get it..)
+    Furthermore, I realize a lot of dealings with the river / water can be done a lot efficient by just using the nodes / segments, 
+    instead of the actual poly points and being able to have a bit more control over it would be nice anyway. 
+
+  ✔ rework river generation @created(01-08-2020 15:12) @done(08-08-2020 22:26)
+    ✔ control width as it runs, e.g. start narrow and finished wide @created(01-08-2020 15:13) @done(01-08-2020 16:05)
+    ✔ offsetting based on normals @created(01-08-2020 15:13) @done(01-08-2020 16:05)
+    ✔ figure out which side of the river a point is on @created(01-08-2020 17:37) @done(01-08-2020 18:53)
+      hm, misunderstood what I'd found online, however, do I really need it given the network rework
+      then again, it would solve the bridge placement issue..? Unless it doesn't use the poly but just 
+      the nodes instead which should give a same result since the shores are now normal alligned
+    ✘ extend polygon .. @created(02-08-2020 16:50) @cancelled(08-08-2020 22:26)
+      has ugle edges atm
+
+  
+
+  ✘ rework network generation @created(01-08-2020 15:14) @cancelled(08-08-2020 22:11)
+      ✘ connect loose ends needs to take neighbors into account @created(03-08-2020 17:22) @cancelled(08-08-2020 22:11)
+      ✘ remove 'duplicate nodes' e.g. within 5 radius of each other @created(05-08-2020 19:45) @cancelled(08-08-2020 22:11)
+      ✔ remove detached segments @created(05-08-2020 19:45) @done(05-08-2020 20:24)
+        with the current wip replacement routine, sometimes a segment is drawn where the node is being removed
+        if I can find those segments and remove it should actually be alright
+      ✘ those weird small rectangles @created(05-08-2020 19:52) @cancelled(08-08-2020 22:11)
+        so what I think happens with those, is two parralel lines spawn rlr at each other
+        such that the head of each connects to the other segment passing by
+        so could it be something to put a detection on the head which says
+        if another head is within R radius, connect to it?
+
+      ✘ stop from connecting back on itself @created(05-08-2020 20:06) @cancelled(08-08-2020 22:11)
+        seems to happen specifically along shore
+
+      ✘ follow shore can create sharp angles @created(05-08-2020 19:47) @cancelled(08-08-2020 22:11)
+        q: do I mind.. can also randmize between shallow and hard angle?
+
+      ✔ have segment use nodes as well @created(05-08-2020 18:58) @done(05-08-2020 19:45)
+        otherwise when increasing the radius it connects already connected nodes to each other again,
+        and flags them as such
+        what I probably actually want to do, is replace both nearest with a single node
+        as in, replace 2 that are within radius of each other replace with 1
+
+      so the current issues are the following;      
+      ✔ intersection check generates a new position, however, no garantue it's not in water @done(03-08-2020 16:39)
+        solved with just replacing generateNewPos in intersection check by checkForWater. Not ideal but it works
+      ✔ follow shore angle adjustment is relative to which side it's on @done(03-08-2020 16:44)
+        solved in the most fugly way evah; first override getAngle, then generate a new position
+        and if that lands in water, override getAngle again! WTF... xD
+      
+      In other words, checking for water either needs to be done always, or it needs to ensure the correct angle
+      so not sure if network rework really is in order, or whether the rules should specifify how to check for water, 
+      however, it's absolutly needed that generateNewPos garantuees the new position is in water
+
+      the issue in compounded because doing the water check in generateNewPos is not going to work, 
+      since water checking obviously calls on generateNewPos... so recurive calls will overflow stack
+      
+      all right, putting the water check into check intersection is 
+      the obvious quick answer here. However I have another edge case on my hand
+      wherein the check for intersection and water keeps bouncing back and forth
+      and couple of times until and everytime it passes inWater, the config length
+      keeps increasing until it reaches the opposite shore. 
+      What I dont understand atm is how and where the angle keeps getting flipped. 
+      ok, so the angles didnt get flipped, what was happening;
+        it just keeps randomly generating left or right, which either intersects or is in water
+        when it actually is in water, it just keeps generating new positions,
+        however, it also increased the config length! Such that, after a while, it reaches the opposite site..
+      
+      trying to fix this by overriding getAngle for rlr rule actually produces less of an interesting result
+      in other words; do I want to fix this or allow behaviour to occur because it, in this 1 example at least, is kidna cool
+      Though if I allow it; it does mean I need another way to keep tracks of bridges which could be as simple as
+      counting how many segments are in water, provided I can get followShore to actually play along nicely. 
+
+      phew.. just checking some things and there also appears to be something wrong
+      with the way nearest nodes are connected, because some are flagged as being nearest while just
+      being in a straight connection to neighbors.. 
+      hm yeah, not really, just seemed very similar situation but not quite the same
+      
+      damn this river business really is way more complicated than anticipated.. 
+
+  Evaluation : @created(08-08-2020 22:12)
+    so reversed a lot of things with regard to netwerk cleanup because it was going nowhere fast..
+    current thinking is; filter nodes on false head, meaning they've ran into an intersection
+    make various detection passes with certain radii and determine what needs to happen based on context
+    also, need to somehow put it in a while loop since every adjustment has the potential to kindle another conflict
+    so it needs to take the form of while(!deadheadRadius10.length > 0) {do stuff for the 1st entry }
+    since it could be that there's a deadhead in the first cluster which status changes, thus doesn't need 
+    cleaning up anymore since a previous cleanup has already taken care of it
+
+    so thinking a bit broader about the whole generation process; as stated before (in a reverted commit I think)
+    I'd like to make things a bit more efficient. Like, the start rule is only really applicable to the 1st iteration. 
+    Likewise, the majority of nodes simply does not need to be checked because they're not elligable. However just
+    flagging as inactive does not cut it because as the network grows nodes make become elligable for rlr..
+
+  TODO : 
+    ✘ fix follow shore angle @created(08-08-2020 22:27) @cancelled(10-08-2020 19:53)
+    ✔ start creating cleanup rules @created(08-08-2020 22:27) @done(09-08-2020 16:42)
+        
+      
+    
+  Evaluation : @created(09-08-2020 17:52)
+    so lets give some serious thought about starting over from scratch main reason being
+    the current code is getting to spaghettified. Mostly I realized that if the segment length
+    in one of the rules is changed, the cleanup will utterly fail.. moreover, just changing the order
+    of rule -> cleanup is enough the make cleanup fail.. so yeah, it's getting pretty brittle..
+    not to mention pretty fucking slow, too. 
+    So yeah, what I'd like the next iteration to have; 
+     - all the hyperparameters in one place!
+     - use a dictionary or map to store nodes and segments for faster lookup
+     what I'd like to try as an approach;
+     - start with main / through roads 
+     functionality;
+      water check
+      intersection check
+---
+Notes : 
+  @created(09-08-2020 18:27)
+    so considering this a continuation from newthing, aka naive city plan generation
+    as discussed I'd like to pay more attention to hyperparameters this time around,
+    in addition to performance. Thinking I should me able to use Maps or something for
+    fast retrieval of associated data for a node / segment. 
+
+    as for the approach, I'd like to be able to identify streets, i.e. segments of segments
+    so what if I'd somehow store streets as collection of nodes ? 
+    more intricate waterways.. canals..?
+
+  @created(10-08-2020 09:26)
+    so just realized one the issue with the previous project was a mismatch in levels of abstraction.
+    As in, I had a node class but it was nothing more than a glorified vector, to which rules were applied. 
+    Keyword being 'applied to' instead of a node being responsible for carrying out rules. That is, a node
+    should be the entity to check its own status, consult some rulebook and carry out instructions. 
+    Not only does that make sense from a responsibility standpoint, it would probably also solved the 
+    discrepency in rules vs cleanup, as instruction how to connect to another node is a rule, obviously. 
+    So in theory a node would check status, carry out a rule, i.e. spawn a node and segment, and perform
+    checks. In short responsibility wasn't as capsulated at it should be, or put another way the code structure
+    was a mismatch of an object orientated approach vs a more procedural, functional style. 
+  
+    regardless of object vs functional; a more ideal flow would look something like;
+    foreach node; check status ; if NA return immediatly ; if rule applies carry out. 
+    Now if cleanup is a rule, the question is if the new node should be checked too?
+    e.g. if head, place new node, check if new node can be connected? 
+    kinda begs the question why not keep going, e.g. while(node can be placed) => rules
+    similar to how the river was generated..?
+
+    so perhaps an iteration would look something like, have all the nodes register themselves with status
+    and than carry out corresponding rules.. though, in case of cleanup there's the good ol' question of
+    how to identify duplicates, i.e. nodes which are within each others' radius..
+    though could have something like a status register which contains all found clusters,
+    e.g. clusters[[n1, n2], [n3,n4] ] and than check foreach cluster => c.includes(n3) 
+
+    ---
+    so throwing out some more ambitious ideas; what about procedurally generating a google-like map
+    of a modern city? That is; mutliple transitnetworks, identifyable by color & stroke, building outlines, etc?
+    Sure that's probably highly ambitious but it does offer a new perspective on how to generate, e.g.;
+    first identify major transit hubs, generate rail and waterways, block out parts as warehouses, industry, etc
+    once that is done generate the more intricate details,
+    basically generated it from the top down as opposed to same level-of-detail generation previously. 
+
+    another idea for approach would be to go back to voroni like generation, i.e. block out plots, blocks etc
+
+    also would really like to use the bezier library!
+
+    so question: do I want to recreate what I had, only better.. or something else..?
+
+  @created(11-08-2020 08:57)
+
+    so I'm thinking starting from scratch was an impulse driver by prospect of auto exam in a few days, weird how that works.
+    That being said, I do need to give some more thought about how to refactor, and what I want out of a refactor. 
+    Basically as has been stated, clean up should be considered a rule as well. Also I think having the nextNodes thing is actually 
+    making things more confusing as well. As in, it could theoretically lead to situations wherein two nodes take action, based on the 
+    old situation which results in conflict in the new. Put another way, nodes should take action based on the actual, current situation
+    of the network, and as such an iteration is simply defined as loop through all nodes (or all nodes which have a status)
+    Speaking of conflict; also realized some decision power may be required. Consider an active head, the default rule may be
+    to follow heading, however, if it detects other nodes nearby it may opt to connect instead. So, when determining the status,
+    it should probably query the network by default..? As for performance, I could consider a quad tree structure of sorts, i.e.
+    divide the canvas into quadrants, store nodes in seperate quadrant arrays so lookup times are vastly reduced.
+    Another thing; I want to be able to visualize rules without having to specify it twice as is currently the case. 
+    So all things considered a rule entity of sorts is required, which can draw itself, configured esaily, etc. 
+    So a rule is just an encapsulation of the config, all the various checks and a draw capability..?
+    so instead of applying rules I'd like to have something like;
+      have node determine its status
+      retrieve a correct rule based in it
+      exectute rule, update all affected nodes
+
+    with regards to drawing; lets start there as it'll probalby help me sort the rule object out as well
+
+      rules = {
+        rule : ActiveHead, {nodes: [], debug: function}
+      }
+
+  @created(11-08-2020 11:45)
+    hm yeah, did quite a bit of refactor work and while doing so actually encountered a few possible bug
+    places, esp with how to update nodes and the like which may very well explain the weird behaviour when connecting.
+    At any rate, it's in a better shape and next up is actually tacking the radius / connecting issue.
+    So first of all, I like to have to specifcy the radius ONCE, and be done with it (for rule and debug draw)
+    and since I want the rule to be set according to the actual, current network context it implies the network context
+    need to be available to the node, obviously. 
+    Also consider how to handle splitting the head in 2, and deal with bridges and the like
+        
+    
+  @created(11-08-2020 19:29)
+    all right so I'm really glad I pressed on with this project and tackled the dreaded refactor as I've encountered
+    quite a few logic flaw with regards to bookkeeping of neighbors, and calculating NoC. It wouldn't surprise me in the 
+    slighest if that was - one of the - reasons for some puzzling behaviour I'd seen, like 3 nodes next to each other
+    all spawning random-left-right rule, which theoretically should've been impossible but in practice.. yeah
+    No shaming here as it actually is a bit mind bending. How it currently works; 
+      when a segment is created, the two nodes are added as neighbor to one another. 
+      a node has a NoC which is calculated in the update method (which I'm renaming right now btw)
+      when adding a neighbor, this method should be called ON the neighbor since this nodes connections has changed
+      once both nodes have been added as neighbors to one another, updateNoC should be called on them, too
+      but only after they've been added to each other as neighbor, because otherwise one of them will have in correct neighbors!
+      
+    
+  @created(12-08-2020 10:16)
+    so regarding rules and consistency with regard to network state after an iteration
+    if a node is in water, and I consider it a condition to trigger a rule as well it means some nodes will be in water, 
+    obviously. That is to say, in the old setup a node landing in water was resolved during the same iteration.
+    So what are the reasons for pulling the water check into its own rule?
+      For starters river now also checks if a position is in water, which is kinda weird frankly. 
+      The generator contains some logic as to what to do, which is also the wrong place to do it.
+    
+    so ideally, each rule would define for itself what to do when a new generated position lands in water. 
+
+    probably want to rename node.rule to status, since that's basically what it is
+    so a nodes' status can be used to execute rules
+
+    idea how to handle head; 
+    check in radius with length distance to neighbor +1
+     if any other nodes are found, connect to it.. ?
+      expect of cource with rlr... other nodes are likely in radius, so then it should be ignored..?!
+  @created(14-08-2020 13:59)
+    so the new rule structure is really quite easy to work with now, which is nice!
+    also, I actually execute the rules in order now, which I hadn't really considered before
+    but it does seem to result in a lot nicer and more consistent network 
+    as in, it excludes a lot potential conflict between rules, e.g. deadEnd & everyThird
+      so once a deadend has connect, the neighbor node status is no longer everyThird
+      and and since that rule is now executed after deadEnd, the conflict is no more! 
+
+    what I'm still not sold on is that ConnectToNearestInRadius is not a rule per definition
+    but rather a function which proper rules make use off. 
+
+    he, so this is nifty, was looking for a way to detect closed shapes
+    and accidentaly stumbled into a way to trace through roads by
+    simply sampling a bunch of random intersections and from there trace all the 
+    1st neighbors which aren't the current node untill end. And that works surprisingly
+    well it seems. 
+
+    hm yeah, so ideally the next BIG step would be to fill out all the shapes
+      problem is; I dont have a fucking clue where to even being doing that. 
+      using the network itself seems to provide the most detail, but also the most cumbersome
+      could also just spawn plots from the 2 connections nodes potentially 
+        though I see lots of issues with overlap in corners with that one
+      could perhaps turn all the segments into a mask of sorts? 
+      hm yeah.. this will require quite some thought and experimentation
+  
+  @created(16-08-2020 12:51)  
+    so got the closed shape detection working pretty nicely atm. Still it is a little rough around the edges
+    and can't find ALL closed shapes due to the heuristic of trying to find shortest to startNode, and 
+    stopping once it has found ANY closed shape. Then again, it's pretty neat and it could now actually 
+    serve as a foundation to build a simulator on! 
+    also oops, just found out shape detection doesn't take river into account..
+  @created(30-08-2020 09:36)
+    so thinking ahead a bit; I'd like to add more elaborated waterways, features and rail lines into the generation
+    process. In addition, it'd also be very cool if it could generate 'modern' structures, like american suburbs. 
+    And that brought me back to the idea of somehow making a node temporarily rule aware.
+    For instance, in the current setup, when a heading node goes back into the center of the network (which
+    presumes it can detect some density factor of nodes in a radius), it triggers a avenue rule, which basically
+    means it will go straight ahead for N nodes. And I could probably do this relativly easily by having the initial
+    'avenue' node actually have that as a status, and push that status forward onto the newly placed node. That is, it's
+    no longer an active head, it's an active avenue head. And to generalize this, basically specialized active head statuses.
+    This could also work for following the river shore for instance. Now for the second part of this to work, 
+    I could in addition consider rules with state. As in, the first avenue head actually triggers the initialisation of a rule,
+    which could dictate how long to progress. Then again, this could also be done just by chance alone, probably. 
+    At any rate, the idea of specialized active head statuses which map 1:1 to a rule could also allow for interesting 
+    waterways, for instance start with a river which branches of and triggers a 'docks' rule which has a more geometric
+    fasion. Or a 'square' node, which basically just maps out a perfect square. 
+    One of the issues, however, I can forsee is how to surpress certain other rules. Back to the avenue example, 
+    how could I precent the 'every third' rule when a node is part of an avenue? Basically just add a status check in 
+    the condition which triggers said 'every third'. Though speaking of 'every third', I'd also like to have a, say, 
+    'every fourth', 'every fifth', etc. 
+  @created(04-09-2020 18:53)
+    so yeah implemented quad tree and that makes quite the difference, very happy!
+    think next up is actually try to implement some subdivision for the shapes.
+    As in, basically do the whole plot subdivision thing again which I already tackled on 2d java sim & godot.
+    Multiple reasons I want to do this;
+      add more detail to the generated city plan, conveying more of a city scape as currently it's just a network really
+      anticipating an eventual simulation build on top of this..
+      all other open todos are not really pressing, like yeah, the river needs reworking and yeah
+        refactoring rule into classes is probably a good idea at some point 
+        but none of these really push the project forward in a meaningfull way and this will. 
+
+    ---
+  @created(12-09-2020 15:56)
+    hm yeah, made a lot of things dynamically last week which makes it rather easy now to play around and design
+    rule sets from scratch without interfering with previous rules and settings. Rather nice indeed!
+    That said, the project needs some direction.. where do I want this to be another 2 months and a 100 hours from now?
+    Do I want it to be online and people being able to play around with? Do I want to have nicely detailed cities?
+    Do I want to have a shoddy simulator running on top? 
+    Obviously, the ideal scenario would be a functional city simulator playable online...
+    If I take that notion seriously, I reckon a lot of things need to be constrained, like
+    blocky griddy cities in which it's easy to subdivide grids and place buildings with a 
+    rather simpel simulation on top, e.g. couple of wealth classes and very limited procedural generation options.
+    Than again, is that what I'm after? Not really..
+    Thruth be told, the current generator is quite limited in terms of what it can produce.. 
+    simply because it's starting state is quite limited, like I could imagine something like
+    start with a lot of nodes, possoin disc sampled, than connect them via some shortest route
+    algo or whatever *physarum Algorithm*
+    Then again, it should be totally doable to create such a system within the current framework! 
+  @created(13-09-2020 14:11)
+    ok so I am at another hickup point with this project, as I had nearly a month ago to the date. 
+    This time it isn't necesarily that I want to start over, though I will admit the urge to start 
+    a new project to figure out segment rendering and shape division is noticable. 
+    At the core of it, however, is simply the fact I'm kinda overwhelmed with all the open ended issues
+    facing me, and I'm not sure which one to pick. So lets make an overview of open issues;
+      ✔ fixing river shore follow - pom @done(14-09-2020 16:01)
+        the good news; I totally know what the issue is. The bad news, not quite sure how to adress it. 
+        Currently thinking I'll need to incorporate the segment heading in order to determine which angle to use. 
+        Or do something like, if the river angle found differs more than 180 degrees from the angle between 
+        current and previous node, than subtract 180 from said river angle. No idea if this actually makes sense, 
+        it seems to purely based on intuition. At any rate, still on the list. 
+      ✔ better bridge placement - pom @done(18-09-2020 13:21)
+        Currently this too often given too wonky a result. For instance, I've seen bridges which cross twice, i.e. as soon 
+        as a node on the opposite bank is placed, it crosses the water again on next iteration. This makes sense as
+        there's nothing informing the node of what behaviour is acceptable. 
+        Another issue is that bridge placement is often clustered, which again makes sense as bridge placement is simply determined
+        by the number of total bridges in the network, not their spatial whereabouts. 
+          @created(17-09-2020 21:06)
+          so this is actually trickier than anticipated. Or rather, as has already been noted above there's currently no 
+          way of telling when or where a bridge has been placed after the fact. 
+          @created(18-09-2020 12:06)
+          so basially, it needs to have it's own seperate flow instead off using the 'generic' route
+      - building placement - ff
+        This is one ginormous task really, and I keep going round in circles to find a suitable small enough task to start with. 
+        Candidates are;
+          - closed shape detection
+            part 2, essentially make sure it can find any and all closed shapen even those with dead-ends sticking into them. 
+            Also it should obviously take the river into account
+              @created(27-09-2020 17:38)
+              allright.. thought I had finally cracked the while go around clockwise thing but nope..
+              there're still situations wherein it's simply not detection shapes..fml
+              so first thing to do, see about recreating it. 
+              really wish I could just save a fault network as json and load it in..
+              @created(28-09-2020 17:00)
+              right.. so I had an intuition like a week ago that I'd need positional as well as rotational information
+              in order to determine what clockwise is relative to the current step. however that intuition got buried 
+              in the coding practice and only now do I rediscover it; namely in the grid example I got setup the thing is;
+              even when I know both the angles of a T intersection, I'm obviously left with 2 90 degree angles so..
+              positivly need SOME additional info to determine which one to pick. Though, come to think of it, that could still be
+              determined by the sign of the angle itself, - or +. The issue rather is a bit more subtle. 
+              Namely whether 'up' or 'down' is the correct clockwise paths, depends on the path itself. So what if I had an 
+              accumulated angle, which is another one of those intuitions which is long ignored, actually. 
+
+              ok so there is some really wonky things going on with geometric library as well. 
+              essentially I was going back to the easiest premise, going clockwise is just asking for the points to the right
+              of the current line. At each intersection, just pick right most point and that's it. 
+              What I found however facing forward and asking points to right doesn't work but facing backwards
+              and asking for points to the left does! At least in my limited playground. 
+
+              though unfortuantly this is not fool proof either.. :(
+
+              ok some encouraging news; the new implementation actually performs better than the old! 
+              Up untill now I'd only checked with the decent example and there the old detection is better. 
+              Obviously neither case is optimal, unfortuantly. Really quite a hard problem to solve and I've sunken 
+              quite some time into it already. Perhaps better to focus on something else now.. 
+              What I am saying; let this go for now. 
+
+              @created(03-10-2020 15:21)
+              Right so. I'm still convinced what I try to do - go clockwise at every intersection - is the 
+              best and most optimized way to detect closed shapes in the graph. Trouble is, it is quite complicated
+              because what constitutes a right turn is relative to previous angles and travel directions. So that, 
+              combined with aforementions weirdness in the geometric library have made this a really cumbersome
+              approach and I've made no significant headway. So, for now I stop working on this. 
+              That being said, I do have an idea for another way entirely to do this. But first, to be clear,
+              I could obviously also stop being stubborn and just go for the brute force approach, however, 
+              I really fear performance is going to be a serious issue with like a graph of 10k nodes. 
+              So, the entirely new approach; 
+                - first step; 
+                construct a 'meta' graph that is, for each node with connections >= 3
+                trace every neighbor and while connections == 2 and push those unto a stack
+                when it hits a dead-end or intersection, construct a 'meta' edge
+                from the node start to the node found, with the nodes inbetween associated as vertices                
+                - second step;
+                for each meta edge pick the start node, and stash the end + neighbors 
+                because by defintion a closed shape will the end node, or one of its neighbors
+                then the routine goes something like;         
+                  nodeToCheck -> push all neighbors on a queue
+                  if nodeToCheck doesn't connect, take a neighbor from the queue, and push its neoighbors into it
+                essentially, insert at the start, take from the end to check.
+                All the while I need to keep track of which meta edges are on the route traced
+                because once a cycle is detected, I need to grab all of the associated vertices. 
+                Also, by defintion a meta edge can only be part of 2 cycles, so it would be advised
+                to be able to tag a meta edge if it is part of a cycle, and removed it from a 'to check'
+                stack once it's part of two cycles. 
+                
+
+          - closed shape subdivision
+            randomly (or not) place plots within a closed shape untill reasonably filled out
+          - segment anchoring
+            basically, place plots orientated on the segment normal
+          - plot collision detection
+            in order to even place plots, they need to be able to detect collisions with other plots, 
+            as well segment intersection from the network, as well as water detection, obviously
+        And all of this isn't even considering HOW to place buildings? Like, I could just opt for a very dumb approach
+        like, generate a bumch of spawn points (possibly possion disc sampled) and just try to fit a plot at said spawn?!
+          
+          @created(25-09-2020 13:02)
+          allright, thing is I really want to have buildings in the map, and thinking about it again just now I realized, 
+          using the segments for placement is probably going to give me the quikests results. As in, cast rays on the segment normals
+          to feel out the space and/or perhaps use a growing radius on head nodes to feel it out, then use that information for placement. 
+          Reason for trying this approach first is twofold; it circumvents the issue of dead-ends and it circumvents the need to know 
+          whether or not a shape is closed. So what I need is some way to 'subdivid' a segment, say for example a segment is 100 length, 
+          and I want to place 4 buildings which is just a matter of lerping start & end. And the shapes need to have some way of telling 
+          overlap, collision etc. Or rather, the placement process needs to take that into account. 
+          So question; how should the placement building work, exaclty. 
+
+          as for closed shape detection, starting to drawn some rough drafts;
+          first of all I want to filter out all the dead-ends. Like start node connections ==1
+          continue untill it meets node with connections > 2, then remove all nodes visited
+
+          As for actual detection, going (anti) clockwise seems to make sense, i.e. consistency
+          in addition, I want to move into a situation wherein the detection method keeps track of how many times
+          nodes are visited and / or whether or not nodes are part of a shape already. because point being, a node
+          which lies on an edge can at most be part of 2 shapes. Thus, when it is part of 2 shapes, it can be 
+          removed all together from the search space, thereby shrinking it. 
+          generalising this, the same is true for nodes with connections > 2. As in, a node with 4 connections can at most
+          be part of 4 shapes. So, once a shape has been find, flag all the nodes on the edges that they're part of a shape. 
+          So the idea here is, lets presume the following network; two squares next to each other ☐☐
+          if the search starts at either of those 3n nodes, I want the other 3n node to somehow be flagged as 
+          'exhausted' or something. Something which tells the search, don't bother looking at it, all the shapes it could be part
+          of have already found. That is, the ideal scenario to aim for is that each individual shape is found once at only once
+          in a single search. I don't want to have to filter for duplicates. 
+          So the flow would like something like this;
+            filter out all the dead-ends
+            filter on all n3 nodes, store them as 'unvisited' or something
+            start search, and while searching flag n3 nodes, such that they can become marked as visited even though they weren't the starting node
+            Then again, I might be overthinking things here
+           
+          
+
+      - single shot rules - pom
+        pretty clear what I want as a poc; spawn a grid pattern at some point during generation, which runs within a single iteration
+        kinda like how in the experimental stuff the spawn rule keeps going untill active heads are out of bounds. Once generated the network
+        just has to deal with it. 
+      - more robust network topology - pom
+        see the bug items for collapsing nodes after too small a split. Essentially I want to have some general rule which always runs.
+        Maybe not for each iteration but at the very end of the process at least, which 'somehow'checks nodes to see if it has duplicate
+        neighbors. That is, the same node has been added as a neighbor more than once. 
+        Sure it would be nice if this happen in the first place, however, I have a hunch this is a almost unavoidable issue, 
+        not just with the split rule and may happen with other future rules as well.
+        Thus I think a cleanup pass which corrects these kinda things is a more viable and benficial approach to a solution, instead of hunting
+        down each edge case with rules intersections where it *may* happen.  
+      - better river generation - pom
+        it is using super old code which should be replace by proper river settings and rules. Once that's done 
+        it should be trivial to design some new rules which allow for splitting rivers, and maybe even 
+        geometric shaped harbors and stuff if once shot rules are going to pan out how I envision.
+      - segment rendering - ff
+        really like to have stroked outlines of various widths instead of a single fill line
+      ✔ online / interactivity - c @done(25-09-2020 12:59)
+        have had multiple people inform if it's available online. I could just, to start with, whip up a git
+        repo, register on p5 editor and publish a crude version there. Sure, it's not polished or anything, 
+        but that way people can at least play with the network settings. 
+      - simulation - ff
+        really starting to have an itch to try my hand at another sim. First because this project so far has gone really 
+        nicely in terms of code architecture, like I have response curves ready to go! Conceivably I could just start a 
+        simulator in another sketch and use those to start a crude simulation of basic stuff. Like modelling a population
+        can be done without any spatial dimension, same thing for a production chain of sorts. 
+      
+    So yeah, that's quite a list.. and the question is.. where to work on next? 
+    So I guess the items can be categorized as 
+     - piece of mind  5
+     - flashy feature 3
+     - communication  1
+
+     Could also consider seting up a different project to tackle both closed shape detection 
+     as well as segment rendering. 
+
+     
+
+---
+TODO:
+  ✔ be able to identify through roads @created(20-07-18 16:22) @done(14-08-2020 19:51)
+    basically, the lengthv except it's not just simply the longest 
+    it's longest chain of nodes in the same heading..? 
+    done pretty much by accident but I'll take it
+  ✔ self connect to neighbor nodes @created(20-07-13 15:43) @done(20-07-18 14:59)
+    needs to have a radius check of sorts to determine the context / criteria
+  ✔ Node status @created(14-08-2020 12:02) @done(14-08-2020 12:48)
+      refactor to make explicit that nodes status is used to execute a rule via the dictionary
+  ✔ implement deadEnd rule @created(14-08-2020 12:51) @done(14-08-2020 13:49)
+      so here's the thing, lot of possibilies, e.g.
+        find nodes in radius R, connect to highest ? 
+        if 2 near nodes of equals connections;
+          connnect to nearest OR lerp in between, this depends on distance to it! 
+        lots of possibilites here to explore
+       
+  ✘ fix followShore @created(14-08-2020 15:06) @cancelled(15-08-2020 17:48)
+      it won't be fun but it needs to be done
+        ok think I figured out what the issue is here.So I have a node which gets
+        2 closest river nodes, spawns a new node following shore and said new node 
+        also grabs the exact same 2 closest river nodes to calculate it's angle, which is 180 
+        degrees flipped. Why? Because calculating the angle between them 2 closest river
+        nodes different; first node calculates on A-B, the new node on B-A
+        this obviously causes the angle the 180 different, e.g. -119 and 61
+          so, the direction is follows along is based on the order of calculation
+          which is good to know
+        so the question is now; how to determine which angle to follow..?
+
+        to clarify, the issue is that given 2 points the angle between can be
+        calculated, normalized, from each one standpoint such that it gives 2 angles,
+        which are 180 apart. 
+        So the issue has now boiled down to; how to determine which angle to follow?
+        one option; flag a node as following shore and store the angle
+          than in FollowShore, see if the neighbor is flagged and if so
+            pick the angle with the least deviation from the neighbor
+      
+      yeah no that doesn't work. So... not fixed yet and I think it just needs to be rethought 
+      from the ground up, like, properly following a river means; staying parallel to it
+      and NOT spawn any random left righ. So perhaps somekind of 'meta rule' flag on the nodes
+      like isFollowingShore.. and some meta parameter in the network settings that says
+      followShore for random(start, end) number of nodes.. when at the end 
+      soo.. not fixed yet but also kinda done..?
+
+        so again the issue arise when 2 nodes use the same 2 river nodes
+        to calculate the angle, expect in a different order..
+      
+      cancelled because the issue has been identified, yet unfixable with the current setup
+      having new idea insetead
+
+  ✔ detect closed shapes approach 1 @created(15-08-2020 10:45) @done(15-08-2020 18:41)
+          pick a starting node SN with connections >= 3
+        pick a neighbor cN
+        if(cN != sN)
+          if cN.connections == 2; 
+            pick the other neighbor, and recurse cN = oN
+          if cN.connections >= 3;
+            filter neighbors n != cN
+            calculate distance to SN, pick shortest, recurse cN = sdN
+        else 
+          closed loop found!
+
+      ok, the good news! I actually have managed to be able to find closed shapes!
+      it's still a bit wonky though - aka the bad news - in that I don't have any 
+      way yet of signalling wether a shape has been found or not, and how to proceed
+      from there. As in, ideally I'd like to iterate the network obviously
+      which also implies a way to detect if shapes have already been detected
+      I figured a possible way could be to construct the bounding box for a shape,
+      and use it's center position to check for equality
+
+      also, it's like detection 95%, however those 5% it leaves out are pretty big shapes
+      I'm thinking it has to do with how for each iteration it clears the visited array, 
+      
+      so I think the issue is a combination of finding subshapes, i.e. not closed by the 
+      starting position, and having no way to backtrack
+      so yeah, needs some more attention as to how to actuall find shapes (or not)
+      from the given starting node.
+
+      for now I consider it done
+
+  ✘ refine random left right @created(15-08-2020 10:24) @cancelled(15-08-2020 18:41)
+      dont flip 90, rather take the angle between the neighbors \|/ and use that as split angle. 
+      Reason being that the 90 degree split is relative to only the current node
+      meaning that, when the neighbors are at an angle, the active head may merge immedialty
+      with one of the neighbors see: 2020-08-15-10-41-12.png, 2020-08-15-10-41-35.png
+      cancelled because it depends on the whole network config, moreover, river is inactive for the time being
+  
+  ✔ consolidate parameters @created(14-08-2020 14:00) @done(17-08-2020 19:11)
+    even though it's already a lot easier to change things, I want all the 
+    randomizable parameters for all the rules in once place!
+    Also, save and load obviously!
+    some gui to tweak irl ...? and save from gui...!?
+  
+  ✔ filter out duplicate shapes @created(15-08-2020 18:42) @done(16-08-2020 12:51)
+    make a shape class, calculate bb, use center bb for equality check
+
+  ✔ change network settings over time @created(18-08-2020 09:33) @done(26-08-2020 18:06)
+    it's rather easy now to pass the iteration count to rules
+    so, see about formalising this and design a network that starts out
+    organic than slowly adapts a more rigid structure. For this to work I could set a iteration
+    in the network settings as well, and than use that to map various value like; 
+      let angle = map(iteration, 0, MAX, angleStart, angleEnd)
+    note this is just  linear mapping so I could potentially do some funky 1d transforms instead
+    such that the change happens in a non lineair fashion
+
+    Or, see about using the bezier curves for it, akin to the simulator modelling tool.  
+    that is, map iterations as t to get a point, though than the question is how to interpret that
+    how would the resulting curve for t - y look for instance?
+    OK tried that out in another sketch and yeah, not the way to go. 
+    That said, I could definitly use the bezier curves if I just interpret the x as iterations,
+    the y as whatever change happens over the and then precompute the value by doing curve.getLUT(iterations)
+    and storing that in a lookup table, mapped and all.
+    Then again, that would also just ignore the x component, thus not being able to influence the slope,
+    or the speed of onset rather of the change over time. So yeah. No good really. 
+
+    hm yeah, so thinking of reusing the Lagrange curve I have already done, or perhaps use Newton curves
+    https://stackoverflow.com/questions/53691899/polynomial-interpolation-newton-method
+    https://www.codeproject.com/articles/883386/interpolation-from-polynomial-to-natural-splines
+
+    soo here's a thought; why not use an easing lib!?
+
+    hm.. http://greweb.me/2012/02/bezier-curve-based-easing-functions-from-concept-to-implementation/
+    In a bezier curve based easing function;
+      the X axis is the time axis 
+      the Y axis represents the percentage of progress of the animation. (i.e. variable to change)
+    
+    ok so yeah after much deliberation the conclusion is I can't use the bezier curve straight up, 
+    because if I map iterations to t, or just interpret iterations as the x axis, 
+    in both cases the resulting graph loses a dimension and the resulting curve is not equal to the bezier
+    This is not a short coming of using a bezier curve, rather in the api of the library
+    what I would like to do is map the iterations as the x value, and be able to call a method which
+    retrieves the corresponding y value for a given bezier curve
+
+    hmm, maybe I could use the project method..
+      | Finds the on-curve point closest to the specific off-curve point
+    all right yeah that seems to work, except somehow, the 1st calling project results in lost of missing values, wtf..?!
+    allright seems a known issue with straigh line intersections, or something. 
+    Minor issues but yeah this definitly works!
+    
+    let figure out cubic as well and then incorporate it!
+
+    @created(22-08-2020 09:48)
+      so how to go about getting it implented. Ideally the curves would be precomputed once at generate()
+      and then within a rule I could do let deviation = getDeviation(iteration),
+      which in turn does something like deviationCurve["FollowHeading"][iteration] 
+      Now there's a problem with this, in that currently I have no way of telling which rule I'm in.
+      so I'm thinkin if I want to do this properly the time has come to rework the rules into classes
+      Or not.. either way, it's gonna be a pretty big undertaking to get this working, let alone
+      making it configurable and visualize it, with the ability to change it while running
+      moreover, how to deal with a changing bandthwidth, like a random deviation start at
+      10-12 and gradually changing over time to 45-45, or something///
+      oh wait, that's as easy as getting the y value of curve in 0-1 and mapping it twice
+
+      but erhm yeah, the trickiest part will probably be how to re-initialize the curves
+      in between iterations. Because it means those values cannot quite come from network settings..
+      Then again network settings is kinda crappy anyway. 
+
+    @created(23-08-2020 18:01)
+      so yeah, just grab the stuff from the other sketch, encapsulate it, make it able to visualize itself
+      and just forget about the ui controls. Like, nothing can be controller via ui atm so I'm not sure why
+      all of a sudden I'd try to make it work for the curves other than the coolness factor, aka the gui trap
+      which so many previous projects have fallen victim to. 
+    
+  ✔ response curves! @created(26-08-2020 18:06) @done(29-08-2020 13:45)
+    lets make use of it!
+    just realized, changing the segment length will also effect connecting radius
+    huh, also kinda more important, I can't iterate by mouseclick anymore since the 
+    iteration count is increasing, however, the computed curve values only go so far as 
+    defined in the network settings..
+
+    @created(29-08-2020 11:29)
+      ok so I have some more implementations, however, I still am not quite happy with the structure,
+      notably the getValue() function for every property is the same.. i.e. I want to get rid of this duplication
+      all right solved by some helper functions. That was rather easy :)
+
+  ✔ build changeOverTime object dynamically.. ? @created(29-08-2020 16:02) @done(29-08-2020 17:49)
+    not really liking the repition here, and I think it should be as easy as going over rules and properties, 
+    check if a curveSettings section exists within the networksettings, and if so, add stuff to the 
+    changeOverTime object. Pros, would clean up a lot of code and it's pretty cool tbh.
+    Cons, cannot change return values as easily as I can atm
+
+  ✔ default networkSettings @created(29-08-2020 16:04) @done(31-08-2020 11:19)
+    create json, also could decide to always use json..?
+    ✔ also store seed in network settings! @done(30-08-2020 09:34)
+    ✔ add check in sketch wether to use said network seed @created(31-08-2020 11:06) @done(31-08-2020 11:19)
+  
+  ✔ generalized length curve..? @created(29-08-2020 17:52) @done(31-08-2020 18:49)
+    currently all network rules define their own length..
+    think this could have really nice effects by defining interesting curve
+
+  ✔ QoL visualize curves @created(29-08-2020 16:05) @done(30-08-2020 10:45)
+    would be really nice if I at least could see all property curves for a particular rule
+    maybe all at once? or perhaps just some simple radio buttons / checkboxes to turn this
+    on and off because commenting out lines of code gets real tedious real fast
+   
+  ✔ Quad tree @created(14-08-2020 11:53) @done(04-09-2020 13:39)
+    reason it's slow af is the intersection checking goes through all the segments
+    likewise, getting nodes within radius from the network goes through all nodes
+    q; do I want to write this myself? It'll be fun and insightfull. Con; takes times
+    do implement this in a project first of all though
+
+    https://github.com/elbywan/quadtree-lib 
+    looks a bit better, width & height are option and more extensive API
+
+    so poc working. Question now is.. who is going to hold the quad trees? network?
+    and also, are the quadtrees going to be the main data structures..? as in, 
+    just add the node/segment as a property on the quadtree object, and get rid of nodes / segments?!
+    or rather, replace those arrays with quad trees..?
+
+    also, ReplaceWithNearestNodeInRadius in Generator does a pretty expensive filter of the segments
+    which I'm actually not sure a quad tree will be able to solve. Rather this goes back to the idea
+    of storing related segments for each node [node, segments[]] 
+    Though come to think of it, just making a little bounding box should, theoretically find it..?
+    so like, the node position, subtract -2 from position, give it size 4 should work..?!
+    
+    ✔ network rule sprout @created(04-09-2020 11:07) @done(04-09-2020 11:07)
+    ✔ generator addsegment / node @created(04-09-2020 11:00) @done(04-09-2020 11:10)
+    ✔ generator check intersections @created(04-09-2020 10:54) @done(04-09-2020 11:17)
+    ✔ generator ReplaceWithNearestNodeInRadius @created(04-09-2020 10:58) @done(04-09-2020 11:36)
+    ✔ network get nodes in radius @created(04-09-2020 10:55) @done(04-09-2020 11:40)
+    ✘ replace all node /segment array operations with quadtree..? @created(04-09-2020 11:03) @cancelled(04-09-2020 13:26)
+      no because it seems to actually be slower in some cases than just straight up go over the array
+      so it seems basically only need to have a segment quad tree for intersection checking
+
+
+  ✔ network size graph @created(31-08-2020 18:57) @done(01-09-2020 12:57)
+    basically show the number of nodes & segments over iterations
+
+  ✘ Rule class .. ? @created(14-08-2020 12:47) @cancelled(04-09-2020 19:01)
+    bit weird that River is still using the old way
+    moreover, would remove need for each rule to specify dedugDraw! 
+    hierarchy could look something like; 
+      Rule with execture / debugDraw
+        NetworkRule extends Rule | RiverRule extends rule
+          ActiveHead extends Network rule, override debugDraw
+            Split &  Followheading Rule extends ActiveHead
+    cancelled because it's not in the way atm, i.e. no pressing issue 
+  
+  ✘ rework follow shore @created(15-08-2020 17:49) @cancelled(04-09-2020 19:01)
+    the old way of doing it had a couple of issues
+      first of all was the weird 180 turn around bug which had to do with the way the angle 
+        was being calculated. And in particular, when 2 nodes used the same 2 river nodes but
+        in opposite order. That as angle A-B = 0 while angle B-A = 180, which makes sense but
+        is not as easy to fix since determining which to use is an interaction between the 
+        network nodes and direction they're heading. 
+      secondly, I don't quite like how it 'bounced off' the river the majority of time
+        rather than actually followin it. 
+    thus, I propose a rework the make it actually follow the shore line for N number of nodes
+      this does imply some way of keeping track of how far along the shore the current node is, 
+        i.e. carrying over some state from the previous node but that's doable
+      as for how to match the shore in angle, I need to determine what the closest river node is
+      from either the start or end of a segment. As in, somehow use the segment to determine the 
+      direction along / relative to the river
+    Also, if I'm going this route I may want to consider also how the network would follow iso lines..
+    as in, for a potential future heightmap..
+
+
+
+  ✔ dynamically build network rules dictionary @created(06-09-2020 16:12) @done(10-09-2020 18:52)
+    see idea of playing with rule order. 
+
+  ✔ poc new rule set @created(10-09-2020 18:55) @done(12-09-2020 14:56)
+    lets see how flexible the system actually is now .. 
+    I want to create rule set wherein a couple of headers spread out, 
+    and as the overall network size increases the change of a certain rule increases
+     ✔ new, proper somewhat evenly spreading out rule @created(10-09-2020 19:05) @done(12-09-2020 14:56)
+      actually, a new spawn rule which goes out of bounds
+      .. not really spreading out but going out of bounds
+     ✔ new response curve to define the 'other' rule chance  @created(10-09-2020 19:05) @done(12-09-2020 14:56)
+      need to pass a different value in execute (maybe rename variable in network settings to responseCurveMax )
+      come up with a sensible upper size limit to initialize & compute the response curves
+        define condition, every 10th..
+  
+  ✘ stop growth once active head goes N out of bounds @created(10-09-2020 19:23) @cancelled(13-09-2020 14:33)
+    basically no need to keep adding nodes to the network of it already is off screen
+    however, some tweaking is involved here since a node offscreen may spawn another
+    active head which goes back on screen. Thus cutting it off too soon may hamper 
+    the end result. 
+    Cancelled because poc has been made in experimental settings and it's not a pressing issue for general use. 
+  
+  ☐ poc single shot rule @created(12-09-2020 14:56)
+    so as I am experimenting with things I wonder how about doing this;
+      a rule which triggers once on a certain condition and spawns a 2x2 grid
+    could be completely detached from network for all I care. Just wondering how to do this.
+    Think instead of abusing the current network rules dictionary I might want to consider a 
+    one-off rule dictionary instead a have the network itself 
+    
+    @created(13-09-2020 18:52)
+    So immediatly as I start to work on poc single shot rule, I realize the major oversight in the current system
+    is that I have no way to represent actual instructions, like, go forward 8, turn right, go forward 5, etc
+    Basically, the formal syntax of an L-system, or the functionality of a graphics turtle. Like, if I want more 
+    obviously planned area's, I need some way to actually plan them.. duh. 
+
+    @created(19-09-2020 15:50)
+      shape detection feature branch also has some awesome functionality to draw a network from a set of turtle like 
+      instructions, meaning it's very easy to draw a quick grid for example. Really looking forward to merging this back in!
+
+
+  ☐ detailing building placement @created(04-09-2020 19:03)
+    ☐ poc @created(04-09-2020 19:03)
+    essentially I want to follow the same flow as Response Curves, i.e. develop this in a seperate sketch first of all
+    
+    The desired outcome; be able to place plots of various size and shapes, 
+      inside the network to convey a sense of city scape. Wherein a plot can be many things, a building outline, 
+      an open space fit for purpose (e.g. market), an empty field, meadows, etc. 
+
+    @created(05-09-2020 13:22)
+      something to consider, it's not just about filling out closed shapes. First of all there's dead-ends
+      within closed shape to consider which ideally would be populated with building as well, obviously. 
+      And secondly there's just straight up dead-ends and other weirdness. 
+      So perhaps the goal isn't to subdived closed shapes, rather to figure out plot placement
+      along segments, and maybe just forgot about closed shapes to begin with . . ? 
+
+      so yeah, that's an interesting perspective on the thing, the notion it isn't really about closed
+      shapes, it's about filling things out which could be handled by anchoring from segments. 
+      Then again, it's not just a building per segment kinda deal, like, how to place large buildings 
+      which span multiple segments, or even fill out a block on their own? How to leave whole sections
+      'empty' for parks, farmland, etc. 
+      Maybe a 2 stage process, first assign purposes to shapes, and then choose a 'fill' algo based on that..?
+
+      also about closed shape detection, thinking about using the sum of interior angles, which can be obtained 
+      by this formula;
+        If “n” is the number of sides of a polygon, then the formula is given below
+        Interior angles of a Regular Polygon = [180°(n) – 360°] / n
+
+      Now the obvious probem here is that I don't know the number of edges, however, I can keep track of 
+      the number of edges while detecting, since an edge in this case is defined as going from intersection to intersection
+      and therefor I can say the minimal number of edges is 'traveled edges' + 1 (to close off)
+      and I can keep track of the interior angles of the edges so I could, theoretically, calculated
+      what the remaining angle would be if the current intersection has an edge which closes the loop
+
+      but again this just deals with finding closed shapes while the actual problem is how to place buildings
+      anywhere, in a sensible fasion, within the network which is, per definition, going to have open shapes 
+      and dead-ends? 
+
+      And especially if I want to build a simulation on top of it, whatever algo needs to be able to handle 
+      an ever changing network with its own rules, like spawn farming at active ends, slowly create a commercial
+      center, create port and docks at river, etc.   
+      
+    @created(06-09-2020 09:59)
+      since this todo item has morphed from 'subdive shapes' into a broader scope of detailing an urban area, 
+      thinking as evolved as well. At the moment I'm thinking; what if I have something which generates various
+      building outlines / shapes, like a residential, church, large warehouse etc and fit them individually. 
+      The fitting itself could be done by querying the normals of a segment, and see if it's empty on a side. 
+      That is, cast a ray from the midpoint of a segment out of the 2 normals
+      if it hits either another segment, or goes out of bound, that side of the segment is considered empty
+      if it hits a plot outline, it's occupied.
+      Even better, could just keep a list of segments with open sides. 
+      The challenge here would be how to fit large, mutliple segment spanning plots. 
+      Also, I just realised hitting another plot outline doesn't mean there's no space to fit another plot
+      like, row houses fitted within 2 parallel segments 1|P ---|2 a ray cast from segment 2 would hit plot P
+      however it would have 3 units of open space still so rather the question than is, 
+      if it hits another plot, what is the length of the ray? 
+      Or even more generic since it can either hit something or go out of bounds; what is the ray length, period?
+      But yeah, this doesn't really solve anything tbh, it's just a tool. My hunch is the eventual
+      funtionality is going to consist of various techniques, like finding closed shaped, casting rays etc. 
+      So the question; how to design this process..?
+      One idea bouncing around as well, pick a random point, extend a circle point and 
+      construct somekind of bounding box informed by intersection the expansions encounters
+      as in, somekind of floodfill to figure out the open area..
+      hm yeah.. kind of hard problem really..
+
+      So yeah, just using closed shapes would probably simplify the problem, however, the reason against do so are
+        closed shapes can still contain dead-end segments which are then not accounted for    
+        dead-ends / open shapes in general are just a natural occurence in cities.., i.e. just using closed
+        shapes is probably going to look really artificial
+      Though this really only becomes apparent when the closed shapes are drawn together with the segments
+      So maybe just making closed shaped detection rock solid would be a good stepping stone..
+      and than maybe the shapes can just be used as a kind of coordinating intermediate
+      like, does this shape contain any dead-ens? What is the purpose of this shape? 
+
+      Put another way; lets just for the sake of argument presume the detection of closed shapes
+      is a hundred procent perfect and flawless. Than what? Just filling out the shapes doesn't address
+      the issue of dead-ends. So, ideally, the solution wouldn't need shapes at all and rely on some
+      overall encompassing functionality to figure out building placement. 
+
+    @created(08-09-2020 20:43)
+      so it it's pretty obvious this is a pretty big and multi facated problem and I'm struggling to get a grip on it. 
+      It needs to be broken down into smaller sub-problems, obviously, however even there I'm not sure where to begin. 
+      That said I do know this seems like one of those problems where a new perspective, another approach will 
+      manifest itself somewhere along the line. To that end lets pick a direction; placing building outlines
+      at the segment normal. I know that's not what I want entirely, however, it is probably part of the solution
+      so I might do it anyway. 
+
+  ☐ refactor shape detection out of network @created(16-08-2020 12:56)
+  shouldn't be the responsability of the network, neither detecting, nor displaying
+    ☐ take river into account @created(16-08-2020 12:59)
+      currently creates shapes which are over water.. whoops 
+
+
+BUGS:
+  
+  ☐ collapsing split creates wrong neighbor count node @created(06-09-2020 12:29)
+    basically, there're situations where a head splits, however, the split angle is too small
+    and consequently the 2 new active heads are within each other radii and connected back.
+    Possibly solution is to filter for nodes with neighbors == 3 
+    and than to a pairwise comparison of said neigbors wherein a pair is expected to be the same node
+    And in general I may want to consider a pairwise comparison of neighbors for nodes with more 
+    than 3 connections anyway since there're more situations where nodes can connect back to themselves 
+    This may help to clean up network topology
+
+
+  ☐ min response value curve undefined.. @created(31-08-2020 18:50)
+    while playing around with default segment length I had a couple of weird crashes where
+    it could not find the min value of the response value at the end of the iterations. 
+    For instance, at 30 iterations it crashed at 27, at 27 iterations it crashed at 24
+    however, everything went fine at 45 iterations... very puzzling behaviour
+    I think it's caused in part because the weird response curve, which actually goes out of bounds,
+    i.e. has y values < 0 && > 1. So that, in combination perhaps with mapping may result in NaN?
+    not sure, didn't really investigate it all the thoroughly tbh because, eh. 
+      yep all right just had it again while playing around w split chance
+
+  ✘ spooky rule jumping. @created(04-09-2020 12:44) @cancelled(13-09-2020 14:39)
+    Basically have a case on my hands where it seems like when DeadEnd status is being evaluated
+    it jumps into the execution of EveryThird, which causes the iteration to be undefined and hence
+    things blow up.. Suspecting I'm starting to run into the asynchronous nature of javascript
+    come to think of it, this may actually be the same issue as the one above ..?!
+    cancelled because I have not seen it happen anymore. I think it was because not all execute 
+    method signature where the same. That or node status was being updated during an iteration.     
+
+
+  ✘ changing canvas size fucks up rendering @created(10-09-2020 19:10) @cancelled(10-09-2020 19:29)
+    somehow multiple stats graphs remain on screen and multiple networks..?
+    wait, actually the stats graphs is seperate, it multiplies on redraw
+    actually, the multiple networks was as intended, it just spawned nodes relative far from 
+    each other (as indicated by margin) and thus 2 seperate cities spawned
+    the graphs things was a seperate issue and resolved
+
+  ✔ stats graph does not redraws on re-generate @created(10-09-2020 19:13) @done(10-09-2020 19:15)
+    instead seems to be pushed along x axis..?!
+
+  ✔ river keeps iterating when re-generated by pressing r @created(04-09-2020 23:18) @done(05-09-2020 10:27)
+    not sure why the out of bounds condition is no longer applicable when the river is being
+    re-generated. Happens regardless of whether the settings have a random seed or not. 
+
+Ideas:
+  ☐ build a simulator on top @created(05-09-2020 20:36)
+    so 2 of the major road blocks I've encountered so far in tackling a city simulator are
+      how to model change over time, e.g. birthrate
+      how to test spatial interaction on a large scale, e.g. don't want to manually 'build' a city to test
+    obviously the current project neatly offers a solution by the generation process itself, 
+    and the use of resonse curves. Now as for the actual simulation, if any, anything is open and a
+    couple of things to consider; does the simulation turn in tune with the network iterations, or 
+    would it run after the fact once a city layout is generated? Handling pathfinding is obviously
+    something to be implemented, though that shouldn't be too hard. 
+
+  ✔ play around with rule execution order @created(14-08-2020 15:12) @done(13-09-2020 14:43)
+    for instance, 1st do all the follow headings, than do branching off
+    So one of the issues with this right now, is that if I play around with the rules, pre existing network
+    settings will no longer work. Or in other words, can I make it such that the network rules themselved
+    are also build dynamically from the network settings. 
+    And honestly that shouldn't be too hard since all it would require is just to store the mapping
+    between node status and network rules. So the network settings would need to store which node statusses
+    are in use and to which rule they map. In code I need some rule registry, and than at initialisation
+    I need to go over the network setting statusses and build the network rules dictionary. 
+    Finally in network I'd need to replace the current manual filtering on node status to use the 
+    network settings. 
+    toggled done not necesarily the ordering, but since everything is dynamic now it allows me to very easily create
+    new rule sets. 
+  
+  ✔ change rule parameters based on system context @created(20-07-13 18:43) @done(13-09-2020 14:40)
+    for example, when the entire network reaches >N nodes, or >L length, a change from organic to grid is triggerd
+  
+  ☐ landmarks @created(15-08-2020 19:38)
+    so basically it would be nice to be able to insert some obvious 'planning'
+    like a big roundabout with spokes, or a big avenue with side roades for a bit
+    also actually rectange squares and the like. Just thinking out loud it would be nice
+    if network angles could be adjusted after the fact. Like, identify a rectange shape
+    and than straighten out all the adjecent edges.. Or identify (a section of) a mainroad
+    and straighten it out. 
+
+  ☐ think about presentation @created(14-08-2020 15:09)
+    ☐ segment rendering @created(13-09-2020 14:41)
+      at the moment the segments are represented as lines. Now I could change the line thickness
+      based on some settings, however, I'd really like the segments to be rendered as stroked outline;
+      |s| this obviously poses the challenge, how to connect segments of various widths?!
+
+    ☐ subdived closed shapes @created(04-09-2020 18:45)
+      basically, populated the 'city blocks' with proper building plots.. 
+
+    ✘ adjust line thickness based on position in network @created(20-07-13 15:48) @cancelled(13-09-2020 14:41)
+      cancelled because replaced by more general 'segment rendering' item
+      closer to center increases thickness
+      @created(11-09-2020 16:32)
+      think I want to poc this relative quickly and possibly use the bezier library
+      like, use the nodes to create a bezier from curve and offset if
+      only tricky bit would be how to connect curves with various widths
+      and in fact, that would actually be the point of the poc in the first place
+      how to render segments with various widths and have them connect nicely (visually)
+
+    ✔ detect closed shapes in network @created(20-07-18 21:08) @done(04-09-2020 18:45)
+      aka the hard prob
+      essentially, detect all plots contained within network (additionally trace to river..) 
+      filter on node connectipns > 2
+      aks, give me the neoghtbor to the right,
+      and ask of it, does  it have a neighbor above it, 
+      and ask of it, does it has a neighbor to the left
+      basically trace a rectangle, though that may not work for irregular shapes, of which there can be
+      and will probably also need to take distance into account
+  ✘ allow for river branching off / rejoining @created(01-08-2020 15:12) @cancelled(14-08-2020 15:08)
+    cancelled because this should be doable in a short while with either new river rules
+    or some overall settings object which indicates which rules apply to the river / network
+  ✘ grid sections @created(20-07-13 15:44) @cancelled(14-08-2020 15:07)
+    cancelled because already have that, and I feel like it should be possible to introduce
+    grid sections on purpose by manipulating the settings while the network is generated
+    would really cool to have a blend of organic and planned layouts. Multiple approaches possible, like
+      scan for open areas in the existing network, generate and connect
+      flag a node as start grid seed of sorts, such that all segments spawned from it use straigh angles
+  ✘ parallel segments @created(20-07-13 15:52) @cancelled(14-08-2020 15:07)
+    cancelled becasue see grid sections
+    kinda tying in to the grid idea, having segments running parallel to each other would be really cool 
+    for curves too. And actually, non-curve (i.e. grid) should just be a matter of setting the theta to 0
+  
+  ✘ be able to remove segments, i.e. remove node from all neighbors' lists @created(20-07-13 18:46) @cancelled(14-08-2020 15:07)
+    cancelled because what did I mean with this in the first place?! 
+
+General Rules : @created(10-08-2020 10:19)
+  as established 
+  ✔ head continue on @done(14-08-2020 14:04)
+  ✔ branch T off existing node @done(14-08-2020 14:04)
+  ✔ node-to-node connect within certain radius @done(14-08-2020 14:04)
+  new ideas;
+  ✔ head split in 2 @done(14-08-2020 14:04)
+  ✘ continue on untill exit condition, e.g. in water, intersect segment, connected to other @cancelled(14-08-2020 15:12)
+                  
+      

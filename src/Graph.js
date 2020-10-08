@@ -130,7 +130,7 @@ let square = [
 
 let grid = [
   // { angle: 90, length: 25 },
-  { angle: 1, length: 50, repeat: 5 },
+  { angle: -1, length: 50, repeat: 5 },
   { angle: 90, length: 50 },
   { angle: 0, length: 50, repeat: 5 },
   { angle: 90, length: 50 },
@@ -139,27 +139,27 @@ let grid = [
   { angle: 0, length: 50, repeat: 5 },
   { from: -1, to: 0 },
   { angle: 90, length: 50, from: -2 },
-  { angle: 0, length: 50, repeat: 4 },
-  { angle: 90, length: 50, from: -9 },
-  { angle: 0, length: 50, repeat: 4 },
-  { angle: 90, length: 50, from: -16 },
-  { angle: 0, length: 50, repeat: 4 },
-  { angle: 90, length: 50, from: -23 },
-  { angle: 0, length: 50, repeat: 4 },
-  { angle: 90, length: 50, from: -30 },
-  { angle: 0, length: 50, repeat: 4 },
-  { angle: 90, length: 50, from: -37 },
-  { angle: 0, length: 50, repeat: 4 },
-  { from: -1, to: 12 },
-  { from: -7, to: 11 },
-  { from: -13, to: 10 },
-  { from: -19, to: 9 },
-  { from: -25, to: 8 },
-  { from: -31, to: 7 },
-  { from: -34, to: 2 },
-  { from: -35, to: 1 },
-  { from: -20, to: 50 },
-  { from: -21, to: 49  },
+  // { angle: 0, length: 50, repeat: 4 },
+  // { angle: 90, length: 50, from: -9 },
+  // { angle: 0, length: 50, repeat: 4 },
+  // { angle: 90, length: 50, from: -16 },
+  // { angle: 0, length: 50, repeat: 4 },
+  // { angle: 90, length: 50, from: -23 },
+  // { angle: 0, length: 50, repeat: 4 },
+  // { angle: 90, length: 50, from: -30 },
+  // { angle: 0, length: 50, repeat: 4 },
+  // { angle: 90, length: 50, from: -37 },
+  // { angle: 0, length: 50, repeat: 4 },
+  // { from: -1, to: 12 },
+  // { from: -7, to: 11 },
+  // { from: -13, to: 10 },
+  // { from: -19, to: 9 },
+  // { from: -25, to: 8 },
+  // { from: -31, to: 7 },
+  // { from: -34, to: 2 },
+  // { from: -35, to: 1 },
+  // { from: -20, to: 50 },
+  // { from: -21, to: 49 },
 
 ]
 
@@ -187,7 +187,6 @@ function constructGraph(steps) {
         for (let i = 0; i < step.repeat; i++) {
           index = nodes.length - 1
           placeNodeAndEdge(index, step)
-
         }
       }
     }
@@ -251,10 +250,10 @@ function findAllClosedShapes(g) {
     .filter(n => n.connections >= 3)
     .map(n => sortNodesClockwise(n, n.neighbors))
 
-  // let index = 0
-  // let start = toCheck[index]
-  // let step = toCheck[index].neighbors.reverse()[1]
-  // detectShape(start.node, step.node, shapes)
+  let index = 0
+  let start = toCheck[index]
+  let step = toCheck[index].neighbors.reverse()[1]
+  detectShape(start.node, step.node, shapes)
 
   while (toCheck.length > 0) {
     let start = toCheck.pop()
@@ -273,6 +272,8 @@ function detectShape(start, step, shapes) {
   let visited = []
   let current = start
   let next = true
+  let stepAngle = getAngle(start, step)
+  stepAngle = stepAngle == 360 ? 0 : stepAngle
   verts.push(start.pos)
 
   while (next) {
@@ -287,29 +288,36 @@ function detectShape(start, step, shapes) {
       verts.push(step.pos)
       let nextStep = step.getOtherNeighbors(current)[0]
       current = step
-      step = nextStep
+      step = nextStep      
+      stepAngle = degrees(getAngle(current, step))
+      stepAngle = stepAngle == 360 ? 0 : stepAngle
+      print("connection 2" , stepAngle)
     } else {
       verts.push(step.pos)
       let neighbors = step.getOtherNeighbors(current)
       let sorted = sortNodesClockwise(step, neighbors)
       print(sorted, stepAngle)
+      // find out all options with a larger angle than stepAngle
+      // in order to go clockwise
       let options = sorted.neighbors
-        .filter(n => n.angle > stepAngle)
+        .filter(n => n.angle >= stepAngle)
         .sort((n1, n2) => n1.a < n2.a ? -1 : 1)
       print(options)
+      // if no clockwise options are found, reverse the
+      // clockwise sort in order to take the smallest angle anti-clockwise
       if(options.length == 0){
         print("options to sort",sorted)
         options = sorted.neighbors.reverse()
       }
-
+      // if there're more than 2 options make sure there
+      // isn't the same as the current step angle
+      if(options.length >=2){
+        options = options.filter(o => o.angle != stepAngle)
+      }
       current = step
       step = options[0].node
       // zero step angle fucks up the clockwise ordering, therefor keep current step angle
-      stepAngle = options[0].angle == 0 ? stepAngle : options[0].angle
-
-
-      // current = step
-      // step = nextSteps[0].node
+      stepAngle = options[0].angle == 360 ? 0 : options[0].angle
     }
     if (step == start) {
       // find out if the shape found already exists, if not push it
