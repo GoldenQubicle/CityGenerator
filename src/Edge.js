@@ -3,9 +3,10 @@ class Edge {
   constructor(start, end) {
     start.addNeighbor(end)
     end.addNeighbor(start)
-    this.start = start;
-    this.end = end;
-    this.length = start.pos.dist(end.pos);
+    this.start = start
+    this.end = end
+    this.length = start.pos.dist(end.pos)
+    this.midPoint = this.getPointOn(.5)
   }
 
   asQuadTreeObject() {

@@ -70,7 +70,8 @@ class Node {
     addNeighbor(node) {
         this.neighbors.push(node)
         this.connections = this.neighbors.length
-        // this.neighbors.forEach(n => n.updateNoC())
+        this.neighbors.forEach(n => n.updateNoC())
+        this.updateNoC()
     }
 
     getOtherNeighbors(node){

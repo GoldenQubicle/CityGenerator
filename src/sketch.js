@@ -6,7 +6,7 @@ let shapes = []
 function setup() {
   createCanvas(1024, 1024, P2D)
 
-  graph = constructGraph(grid)
+  graph = constructGraph(setup1)
   // graph = removeDeadEnds(graph)
   // shapes.push(new Shape(constructGraph(square).nodes.map(n => n.pos)))
 }
@@ -18,7 +18,7 @@ function draw() {
   translate(width / 2, height / 2)
 
   graph.edges.forEach(e => {
-    e.display()        
+    e.display()
     push()
     let p = e.getPointOn(.5)
     let a = e.getAngle()
@@ -41,21 +41,18 @@ function draw() {
   }
 
   // shapes = findAllClosedShapes(graph)
-
   shapes.forEach(s => s.display())
+
   let me = createMetaNetwork()
-  me.forEach(e => e.display('orange'))
 
-  // a closed shape which closed loop, i.e. start & end node are the same
-  let loop = me.filter(e => e.start.pos == e.end.pos)
-  // print(me)
-  print(graph.nodes)
-  // let shape = new Shape(loop[0].verts.map(v => v.pos));
-  // shape.display()
+  me.metaEdges.forEach(e => e.display('orange'))
 
-  let sorted = me.sort((e1, e2) => e1.start == e2.end && e1.end == e2.start ? -1 : 1)
-
-  // print(sorted)
+  print(me)
+  // a closed shape, essentially a single edge
+  // i.e. start & end node are the same
+  let loop = me.metaEdges.filter(e => e.start.pos.x == e.end.pos.x)
+  let shape = new Shape(loop[0].verts.map(v => v.pos));
+  shape.display()
   pop()
 
 
@@ -64,15 +61,17 @@ function draw() {
 
 function createMetaNetwork() {
   let metaEdges = []
+  let metaNodes = []
   let nodes = graph.nodes.filter(n => n.connections >= 3)
-  print("n > 3", nodes)
+  // foreach node create a new 'meta node', which by definition will have > 3 connections
+  // then trace each neighbor untill it reaches another node with connections > 3
+  // then create 'meta edge' and store all the nodes with connections == 2 as vertices of said meta edge
   nodes.forEach(node => {
     let start = new Node(node.pos)
+    metaNodes.push(start)
     node.neighbors.forEach(nn => {
-      let i = node.neighbors.indexOf(nn)
-      // print(i)
-      let step = node
       let verts = []
+      let step = node
       let next = nn
       verts.push(next)
       while (next.connections == 2) {
@@ -80,15 +79,42 @@ function createMetaNetwork() {
         step = next
         next = nextStep
         verts.push(next)
-      }      
-      let edge = new Edge(start, new Node(verts[verts.length-1]).pos)
-      // print(start)
-
+      }
+      let lastStep = verts[verts.length - 1]
+      let edge = new Edge(start, new Node(lastStep.pos))
       edge.verts = verts
       metaEdges.push(edge)
     })
   })
-  return metaEdges
+  // since we indiscrimentaly created new edges above we have twice as many now.
+  // that is, for every node there are only dead-end edges going out and we need to connect everything
+  // to do this group the edges by a unique key, a combination of midpoint & vertices length
+  // recall every start of an edge already is a new meta node
+  // thus for every pair of edges, swap the dead-ends for the start of the other and take the 1st edge
+  let edgePairs = groupBy(metaEdges, e => (e.midPoint.x + e.midPoint.y + e.verts.length).toFixed(5))
+  metaEdges = []
+  edgePairs.forEach(pair => {
+    pair[0].start.replaceNeighbor(pair[0].end, pair[1].start)
+    pair[1].start.replaceNeighbor(pair[1].end, pair[0].start)
+    pair[0].end = pair[1].start
+    metaEdges.push(pair[0])
+  })
+  return { metaNodes, metaEdges }
+}
+// shameless SO copy-pasta
+// https://stackoverflow.com/questions/14446511/most-efficient-method-to-groupby-on-an-array-of-objects
+function groupBy(list, keyGetter) {
+  const map = new Map()
+  list.forEach((item) => {
+    const key = keyGetter(item)
+    const collection = map.get(key)
+    if (!collection) {
+      map.set(key, [item])
+    } else {
+      collection.push(item)
+    }
+  })
+  return map;
 }
 
 function keyPressed() {
