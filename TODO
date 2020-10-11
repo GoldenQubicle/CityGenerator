@@ -534,6 +534,18 @@ Notes :
                 to be able to tag a meta edge if it is part of a cycle, and removed it from a 'to check'
                 stack once it's part of two cycles. 
                 
+            @created(11-10-2020 14:31)
+            all right created a meta network, a graph with only nodes >3 connections and edges with associated vertices
+            so how I want this to operate..?!
+            pick an edge, take the start node and do a breadth first search untill either
+              2 shapes have been found, since an edge can by definition only be part of 2 shapes
+              no more viable nodes to check are present
+            
+            during this cycle detection I want to;
+              flag all edges of a found shape as such, i.e. during the process remove
+              edges which already belong to 2 shapes
+            
+            so the biggest challenge atm; how to use the edges properly since they contain the associated vertices..?
 
           - closed shape subdivision
             randomly (or not) place plots within a closed shape untill reasonably filled out

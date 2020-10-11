@@ -36,6 +36,10 @@ class Edge {
     this.length = this.start.pos.dist(this.end.pos);
   }
 
+  getOther(node){
+    return this.start == node ? this.end : this.start
+  }
+
   containsNode(node) {
     return (this.start == node || this.end == node)
   }

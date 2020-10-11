@@ -6,7 +6,7 @@ let shapes = []
 function setup() {
   createCanvas(1024, 1024, P2D)
 
-  graph = constructGraph(setup1)
+  graph = constructGraph(grid)
   // graph = removeDeadEnds(graph)
   // shapes.push(new Shape(constructGraph(square).nodes.map(n => n.pos)))
 }
@@ -43,20 +43,53 @@ function draw() {
   // shapes = findAllClosedShapes(graph)
   shapes.forEach(s => s.display())
 
-  let me = createMetaNetwork()
+  let mnw = createMetaNetwork()
 
-  me.metaEdges.forEach(e => e.display('orange'))
+  mnw.metaEdges.forEach(e => e.display('orange'))
+  mnw.metaEdges[4].display('purple')
+  mnw.metaEdges[4].start.display()
+  // mnw.metaEdges[1].start.neighbors[1].display()
+  let visitedEdges = detectCyclesMetaNetwork(mnw)
+  let verts = visitedEdges.map(e => e.verts.map(n => n.pos)).flat()  
+  print(verts)
+  let shape = new Shape(verts)
+  shape.display()
 
-  print(me)
+  print(mnw)
   // a closed shape, essentially a single edge
   // i.e. start & end node are the same
-  let loop = me.metaEdges.filter(e => e.start.pos.x == e.end.pos.x)
-  let shape = new Shape(loop[0].verts.map(v => v.pos));
-  shape.display()
+  let loop = mnw.metaEdges.filter(e => e.start.pos.x == e.end.pos.x)
+  // let shape = new Shape(loop[0].verts.map(v => v.pos));
+  // shape.display()
   pop()
 
 
   noLoop()
+}
+
+function detectCyclesMetaNetwork(mnw) {
+  let visitedEdges = []
+  let edge = mnw.metaEdges[4]
+  visited.push(edge)
+  let end = edge.end
+  let current = edge.start
+  let toCheck = getOtherMetaNeighbors(current, end)
+  print(toCheck)
+  while (current != end) {
+      let next = toCheck.pop()
+      let nextnn = getOtherMetaNeighbors(next.node, current)
+      visitedEdges.push(next.edge)
+      toCheck.unshift(...nextnn)
+      current = next.node
+  }
+  
+  return visitedEdges
+}
+
+function getOtherMetaNeighbors(node, exclude) {
+  let neighbors = node.getOtherNeighbors(exclude)
+  let meta = node.metaNeighbors.filter(mn => neighbors.includes(mn.edge.getOther(node)))
+  return meta
 }
 
 function createMetaNetwork() {
@@ -68,6 +101,7 @@ function createMetaNetwork() {
   // then create 'meta edge' and store all the nodes with connections == 2 as vertices of said meta edge
   nodes.forEach(node => {
     let start = new Node(node.pos)
+    start.metaNeighbors = []
     metaNodes.push(start)
     node.neighbors.forEach(nn => {
       let verts = []
@@ -97,6 +131,8 @@ function createMetaNetwork() {
     pair[0].start.replaceNeighbor(pair[0].end, pair[1].start)
     pair[1].start.replaceNeighbor(pair[1].end, pair[0].start)
     pair[0].end = pair[1].start
+    pair[0].start.metaNeighbors.push({ node: pair[0].end, edge: pair[0] })
+    pair[0].end.metaNeighbors.push({ node: pair[0].start, edge: pair[0] })
     metaEdges.push(pair[0])
   })
   return { metaNodes, metaEdges }
