@@ -14,14 +14,13 @@ class Shape {
         this.width = this.rightDown.x - this.leftUp.x
         this.height = this.rightDown.y - this.leftUp.y
         this.centerBB = createVector(this.leftUp.x + this.width / 2, this.leftUp.y + this.height / 2)
-
         // this.vertices = geometric.polygonScale(this.vertices, .85)
     }
 
     display() {
 
         this.drawShape()
-        this.drawCenter()
+        // this.drawCenter()
         // this.drawBoundingBox()
         fill('blue')
         // circle(this.vertices[0][0],this.vertices[0][1], 5)

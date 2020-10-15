@@ -546,6 +546,8 @@ Notes :
               edges which already belong to 2 shapes
             
             so the biggest challenge atm; how to use the edges properly since they contain the associated vertices..?
+            and also, how to keep track of the path taken to where the check current == end is performed?
+
 
           - closed shape subdivision
             randomly (or not) place plots within a closed shape untill reasonably filled out

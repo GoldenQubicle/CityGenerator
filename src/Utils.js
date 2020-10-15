@@ -25,3 +25,24 @@ function getAngle(origin, node) {
   angle += radians(90)
   return angle < 0 ? TAU + angle : angle
 }
+
+// shameless SO copy-pastas
+// https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascriptarray-remove-duplicates#14438954
+function onlyUnique(value, index, self) {
+  return self.indexOf(value) === index;
+}
+
+// https://stackoverflow.com/questions/14446511/most-efficient-method-to-groupby-on-an-array-of-objects
+function groupBy(list, keyGetter) {
+  const map = new Map()
+  list.forEach((item) => {
+    const key = keyGetter(item)
+    const collection = map.get(key)
+    if (!collection) {
+      map.set(key, [item])
+    } else {
+      collection.push(item)
+    }
+  })
+  return map;
+}

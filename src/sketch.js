@@ -18,7 +18,7 @@ function draw() {
   translate(width / 2, height / 2)
 
   graph.edges.forEach(e => {
-    e.display()
+    // e.display()
     push()
     let p = e.getPointOn(.5)
     let a = e.getAngle()
@@ -29,33 +29,41 @@ function draw() {
     pop()
   })
 
-  graph.nodes.forEach(n => n.display())
+  // graph.nodes.forEach(n => n.display())
 
-  if (isDetecting) {
-    fill('green')
-    circle(start.pos.x, start.pos.y, 15)
-    fill('orange')
-    circle(step.pos.x, step.pos.y, 15)
-    fill('purple')
-    circle(current.pos.x, current.pos.y, 15)
-  }
+  // if (isDetecting) {
+  //   fill('green')
+  //   circle(start.pos.x, start.pos.y, 15)
+  //   fill('orange')
+  //   circle(step.pos.x, step.pos.y, 15)
+  //   fill('purple')
+  //   circle(current.pos.x, current.pos.y, 15)
+  // }
 
   // shapes = findAllClosedShapes(graph)
   shapes.forEach(s => s.display())
 
   let mnw = createMetaNetwork()
-
+  print(mnw)
   mnw.metaEdges.forEach(e => e.display('orange'))
-  mnw.metaEdges[4].display('purple')
-  mnw.metaEdges[4].start.display()
+  // mnw.metaEdges[selectedEdge].display('purple')
+  mnw.metaEdges[selectedEdge].start.display()
+  let node = 15
+  mnw.metaNodes[node].neighbors.forEach(n =>
+    {
+      stroke('black')
+      line(mnw.metaNodes[node].pos.x,mnw.metaNodes[node].pos.y, n.pos.x, n.pos.y )
+    })
+
   // mnw.metaEdges[1].start.neighbors[1].display()
-  let visitedEdges = detectCyclesMetaNetwork(mnw)
-  let verts = visitedEdges.map(e => e.verts.map(n => n.pos)).flat()  
+  let pathNodes = detectCyclesMetaNetwork(mnw)
+  let verts = pathNodes.map(n => n.node.pos).flat()
+  // print(visitedEdges) 
   print(verts)
   let shape = new Shape(verts)
   shape.display()
 
-  print(mnw)
+  // print(mnw)
   // a closed shape, essentially a single edge
   // i.e. start & end node are the same
   let loop = mnw.metaEdges.filter(e => e.start.pos.x == e.end.pos.x)
@@ -66,29 +74,48 @@ function draw() {
 
   noLoop()
 }
+let selectedEdge = 3
 
 function detectCyclesMetaNetwork(mnw) {
-  let visitedEdges = []
-  let edge = mnw.metaEdges[4]
-  visited.push(edge)
-  let end = edge.end
-  let current = edge.start
-  let toCheck = getOtherMetaNeighbors(current, end)
-  print(toCheck)
-  while (current != end) {
-      let next = toCheck.pop()
-      let nextnn = getOtherMetaNeighbors(next.node, current)
-      visitedEdges.push(next.edge)
-      toCheck.unshift(...nextnn)
-      current = next.node
+  let toCheck = []
+  let edge = mnw.metaEdges[selectedEdge]
+  let current = { node: edge.start, edge: edge, path: [edge] }
+  let exlcude = edge.end
+
+  print("start", toCheck.length)
+
+  while (current.node != edge.end) {
+    let nextnn = getOtherMetaNeighbors(current.node, exlcude, current.path)
+    toCheck.unshift(...nextnn)
+    print("enqueue", toCheck.length)
+
+    exlcude = current.node //bug cant use the current node, actually need to exclude previous for a given path..
+    current = toCheck.pop()    
+    print("dequeue", toCheck.length)
+
   }
+
+  let nodes = current.path.map(e => e.verts.map(v => v)).flat()
+  nodes.push(edge.start) // not sure if always needed tbh
+  nodes = nodes.filter(onlyUnique)
   
-  return visitedEdges
+  let x = nodes.reduce((total, node) => total + node.pos.x, 0) / nodes.length
+  let y = nodes.reduce((total, node) => total + node.pos.y, 0) / nodes.length
+  let avarage = new Node(createVector(x, y))
+  avarage.display()
+
+  let sorted = sortNodesClockwise(avarage, nodes).neighbors
+
+  return sorted
 }
 
-function getOtherMetaNeighbors(node, exclude) {
+function getOtherMetaNeighbors(node, exclude, path) {
   let neighbors = node.getOtherNeighbors(exclude)
   let meta = node.metaNeighbors.filter(mn => neighbors.includes(mn.edge.getOther(node)))
+  meta.forEach(mn => {
+    mn.path = path.map(e => e) // map to create new array
+    mn.path.push(mn.edge) // add own edge to path
+  })
   return meta
 }
 
@@ -137,21 +164,7 @@ function createMetaNetwork() {
   })
   return { metaNodes, metaEdges }
 }
-// shameless SO copy-pasta
-// https://stackoverflow.com/questions/14446511/most-efficient-method-to-groupby-on-an-array-of-objects
-function groupBy(list, keyGetter) {
-  const map = new Map()
-  list.forEach((item) => {
-    const key = keyGetter(item)
-    const collection = map.get(key)
-    if (!collection) {
-      map.set(key, [item])
-    } else {
-      collection.push(item)
-    }
-  })
-  return map;
-}
+
 
 function keyPressed() {
   loop()
