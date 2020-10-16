@@ -80,19 +80,15 @@ function detectCyclesMetaNetwork(mnw) {
   let toCheck = []
   let edge = mnw.metaEdges[selectedEdge]
   let current = { node: edge.start, edge: edge, path: [edge] }
-  let exlcude = edge.end
 
   print("start", toCheck.length)
 
   while (current.node != edge.end) {
-    let nextnn = getOtherMetaNeighbors(current.node, exlcude, current.path)
+    let nextnn = getOtherMetaNeighbors(current)
     toCheck.unshift(...nextnn)
     print("enqueue", toCheck.length)
-
-    exlcude = current.node //bug cant use the current node, actually need to exclude previous for a given path..
     current = toCheck.pop()    
     print("dequeue", toCheck.length)
-
   }
 
   let nodes = current.path.map(e => e.verts.map(v => v)).flat()
@@ -109,11 +105,13 @@ function detectCyclesMetaNetwork(mnw) {
   return sorted
 }
 
-function getOtherMetaNeighbors(node, exclude, path) {
+function getOtherMetaNeighbors(current) {
+  let node = current.node
+  let exclude = current.edge.getOther(current.node)
   let neighbors = node.getOtherNeighbors(exclude)
-  let meta = node.metaNeighbors.filter(mn => neighbors.includes(mn.edge.getOther(node)))
+  let meta = node.metaNeighbors.filter(mn => neighbors.includes(mn.edge.getOther(node))) // not sure why this is needed anymore..?! sad face
   meta.forEach(mn => {
-    mn.path = path.map(e => e) // map to create new array
+    mn.path = current.path.map(e => e) // map to create new array
     mn.path.push(mn.edge) // add own edge to path
   })
   return meta
