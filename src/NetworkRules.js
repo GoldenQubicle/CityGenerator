@@ -93,28 +93,22 @@ let SpawnNSproutRule = {
             }
         })
 
-        // while (network.nodes.filter(n => n.status == ActiveEnd).length > 0) {
-        //     network.it++
-        //     network.nodes.forEach(n => {
-        //         n.setStatus()
-        //         if (n.status == ActiveEnd) {
-        //             networkRules[n.status].execute(n, 0)
-        //         }
+        while (network.nodes.filter(n => n.status == ActiveEnd).length > 0) {
+            network.it++
+            network.nodes.forEach(n => {
+                n.setStatus()
+                if (n.status == ActiveEnd) {
+                    networkRules[n.status].execute(n, 0)
+                }
 
-        //     })
-        // }
+            })
+        }
 
-        // network.nodes.forEach(n => {
-        //     if (n.status == DeadEnd) {
-        //         networkRules[n.status].execute(n, 0)
-        //     }
-        // })
-        // network.nodes.forEach(n => {
-        //     if (n.status == DeadEnd) {
-        //         networkRules[n.status].execute(n, 0)
-        //     }
-        // })
-
+        network.nodes.forEach(n => {
+            if (n.status == DeadEnd) {
+                networkRules[n.status].execute(n, 0)
+            }
+        })     
 
     },
     debugDraw: function () {
@@ -124,30 +118,6 @@ let SpawnNSproutRule = {
 
         })
     }
-}
-
-let SingleShotRule = {
-    execute: function (seeds) {
-
-        var c1 = new Node(createVector(0,0))
-        print(c1.heading())
-        c1.rotate(radians(0))
-        print(c1.heading())
-        c1.pos.setMag(100)
-        print(c1.pos)
-        var c2 = new Node(createVector(10,0))
-        var c3 = new Node(createVector(10,10))
-        var c4 = new Node(createVector(0,10))
-
-        network.nodes.push(c1)
-        // network.nodes.push(c2)
-        // network.nodes.push(c3)
-        // network.nodes.push(c4)
-    },
-    debugDraw: function () {
-
-    }
-
 }
 
 let NodeSpreadHeadingRule = {
@@ -316,7 +286,6 @@ const NodeDeadEnd = "NodeDeadEnd"
 const RandomLeftRight = "RandomLeftRight"
 const RandomLeftRightChance = "RandomLeftRightChance"
 const Nothing = "Nothing"
-const SingleShot = "SingleShot"
 
 
 // node rules
@@ -344,7 +313,6 @@ const NodeRulesMapping = {
     RandomLeftRight: RandomLeftRightRule,
     RandomLeftRightChance: RandomLeftRightChanceRule,
     Nothing: NodeNoActionRule,
-    SingleShot: SingleShotRule
 }
 
 //finally the dictionary which binds node status to node rule function

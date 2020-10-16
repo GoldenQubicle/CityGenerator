@@ -3,8 +3,8 @@
   "hasRandomSeed": false,
   "seed": 478000213157004,
   "hasRiver": false,
-  "iterations": 6,
-  "iterations_CoT": 50,
+  "iterations": 75,
+  "iterations_CoT": 75,
   "centerMargin": 475,
   "numberOfSeeds": [
     1,
@@ -59,12 +59,12 @@
         },
         "bounds": {
           "lower": {
-            "start": 7,
-            "end": 12
-          },
-          "upper": {
             "start": 10,
             "end": 17
+          },
+          "upper": {
+            "start": 15,
+            "end": 20
           }
         },
         "controlPoints": {
@@ -196,11 +196,11 @@
       },
       "bounds": {
         "lower": {
-          "start": 5,
+          "start": 10,
           "end": 20
         },
         "upper": {
-          "start": 9,
+          "start": 15,
           "end": 30
         }
       },

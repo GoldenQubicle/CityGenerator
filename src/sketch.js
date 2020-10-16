@@ -4,7 +4,7 @@ let network
 let river
 let shapes = []
 function preload() {
-  networkSettings = loadJSON("data/nws_grid.json")
+  networkSettings = loadJSON("data/nws_default.json")
 }
 
 function setup() {
@@ -37,12 +37,6 @@ function generate() {
   console.time(nwg)
   network.generate()
   console.timeEnd(nwg)
-
-  let graph = {nodes : network.nodes, edges: network.segments}
-  // graph = removeDeadEnds(graph)
-  // network.nodes = graph.nodes
-  // network.segments = graph.edges
-  // shapes = findAllClosedShapes(graph) 
 }
 
 function draw() {
@@ -85,9 +79,6 @@ function keyReleased() {
 
 function mouseClicked() {
   network.iterate()
-  let graph = {nodes : network.nodes, edges: network.segments}
-  shapes = findAllClosedShapes(graph) 
-
   loop()
 }
 
