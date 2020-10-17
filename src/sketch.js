@@ -4,7 +4,7 @@ let network
 let river
 let shapes = []
 function preload() {
-  networkSettings = loadJSON("data/nws_default.json")
+  networkSettings = loadJSON("data/nws_exp.json")
 }
 
 function setup() {
@@ -56,7 +56,7 @@ function draw() {
   })
 
   shapes.forEach(s => s.display())
-  // network.stats() 
+  // network.stats()   
   noLoop()
 }
 

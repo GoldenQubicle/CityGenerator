@@ -100,15 +100,34 @@ let SpawnNSproutRule = {
                 if (n.status == ActiveEnd) {
                     networkRules[n.status].execute(n, 0)
                 }
-
             })
         }
 
         network.nodes.forEach(n => {
             if (n.status == DeadEnd) {
-                networkRules[n.status].execute(n, 0)
-            }
-        })     
+                networkRules[n.status].execute(n, network.nodes.length)
+            }            
+        })   
+        print(network.nodes)
+        // while (network.nodes.filter(n => n.status == EverySixth|| n.status == ActiveEnd).length > 0) {
+        //     network.it++
+        //     network.nodes.forEach(n => {
+        //         n.setStatus()
+        //         if (n.status == EverySixth || n.status == ActiveEnd) {
+        //             networkRules[n.status].execute(n, network.nodes.length)
+        //         }
+        //     })
+        // }
+
+        // while (network.nodes.filter(n => n.status == EveryThird|| n.status == ActiveEnd).length > 0) {
+        //     network.it++
+        //     network.nodes.forEach(n => {
+        //         n.setStatus()
+        //         if (n.status == EveryThird || n.status == ActiveEnd) {
+        //             networkRules[n.status].execute(n, network.nodes.length)
+        //         }
+        //     })
+        // }
 
     },
     debugDraw: function () {

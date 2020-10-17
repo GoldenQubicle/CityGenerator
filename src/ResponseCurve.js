@@ -144,7 +144,7 @@ class ResponseCurve {
         stroke('LightGray')
         strokeWeight(2)        
         rectMode(CORNER)
-        square(bX, bY, size)
+        rect(bX, bY, size, size)
      
         //labels
         noStroke()
@@ -182,12 +182,13 @@ class ResponseCurve {
         stroke('LightGray')
         strokeWeight(2)
         rectMode(CORNER)
-        square(bX, bY, size)
+        rect(bX, bY, size, size)
 
         // labels
         noStroke()
         fill('white')
         textSize(20)
+        text(0, bX - 20, bY + size + 30)
         text(0, bX - 20, bY + size + 30)
         text(1, bX - 20, bY + 20)
         text(1, bX + size + 10, bY + size + 30)

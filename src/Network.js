@@ -50,7 +50,7 @@ class Network {
     iterate() {
         this.it++
         console.log("----------iteration " + this.it + "----------")
-        print("nodes:", this.nodes.length, "segments:", this.segments.length )
+        print("nodes:", this.nodes.length, "segments:", this.segments.length)
 
         networkSettings.Rules.forEach(rule => {
             this.nodes.forEach(n => {
@@ -58,16 +58,16 @@ class Network {
                     networkRules[n.status].execute(n, this.it)
                 }
             })
-        })        
+        })
         // set rules for next iteration once all nodes have executed their rule
-        this.nodes.forEach(n => n.setStatus())  
+        this.nodes.forEach(n => n.setStatus())
         // track stats  
-        this.size.push({ nodes: this.nodes.length, segments: this.segments.length })        
+        this.size.push({ nodes: this.nodes.length, segments: this.segments.length })
     }
 
     getConfig() {
         const config = {
-            bridges: this.bridges,            
+            bridges: this.bridges,
             generateNewPos: function (n, c) {
                 let angle = c.getAngle(n, c)
                 return p5.Vector.fromAngle(angle, c.length).add(n.pos)
@@ -80,21 +80,21 @@ class Network {
             },
             placeBridge: function (c, n) {
                 //place bridge if there aren't any
-                if(c.bridges.length == 0){
+                if (c.bridges.length == 0) {
                     return true
-                }                
+                }
                 // for the current node, get shortest distance to bridge
                 // this could be either start or end node
                 // then filter on the minimal distance between bridges
                 // if there're no distances found it's good to be placed
                 let minDistanceBetween = 65
                 let maxBridges = 7
-                let distances = c.bridges.map(s =>{
+                let distances = c.bridges.map(s => {
                     let d1 = s.start.pos.dist(n.pos)
                     let d2 = s.end.pos.dist(n.pos)
                     return d1 < d2 ? d1 : d2
-                }).filter(d => d < minDistanceBetween)                
-                return  distances.length == 0 && c.bridges.length < maxBridges
+                }).filter(d => d < minDistanceBetween)
+                return distances.length == 0 && c.bridges.length < maxBridges
             },
             followShore: function (c) {
                 return true
@@ -244,7 +244,7 @@ class Network {
         return found
     }
 
-    display() {
+    display(showNodes) {
         // console.log("----------display " + this.it + "----------")
 
         this.nodes.forEach(n => {
@@ -257,12 +257,14 @@ class Network {
         // this.traceThroughRoutes()
 
         // this.detectClosedShapes()
-        
+
         this.segments.forEach(l => l.display())
         this.nodes.forEach(n => {
             // textSize(5)
             // text(this.nodes.indexOf(n), n.pos.x, n.pos.y)
-            // n.display()
+            if (showNodes) {
+                n.display()
+            }
             // NetworkRules[n.status].debugDraw(n)
         })
         // this.bridges.forEach(b =>{
