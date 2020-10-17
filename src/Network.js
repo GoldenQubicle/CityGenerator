@@ -60,7 +60,7 @@ class Network {
             })
         })
         // set rules for next iteration once all nodes have executed their rule
-        this.nodes.forEach(n => n.setStatus())
+        // this.nodes.forEach(n => n.setStatus())
         // track stats  
         this.size.push({ nodes: this.nodes.length, segments: this.segments.length })
     }
@@ -244,7 +244,7 @@ class Network {
         return found
     }
 
-    display(showNodes) {
+    display({showNodes = false} = {}) {
         // console.log("----------display " + this.it + "----------")
 
         this.nodes.forEach(n => {

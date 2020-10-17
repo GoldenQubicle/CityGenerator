@@ -42,7 +42,8 @@ function generate() {
 function draw() {
   background(128)
   river.display()
-  network.display()
+  network.display({showNodes: false})
+  
   if (networkSettings.showCurves) {
     responseCurves.display()
   }

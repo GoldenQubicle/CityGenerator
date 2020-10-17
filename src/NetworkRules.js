@@ -106,9 +106,32 @@ let SpawnNSproutRule = {
         network.nodes.forEach(n => {
             if (n.status == DeadEnd) {
                 networkRules[n.status].execute(n, network.nodes.length)
-            }            
-        })   
+            }
+        })
         print(network.nodes)
+
+        for (let i = 0; i < 5; i++) {
+            network.nodes.filter(n => n.status == AdjentToIntersection)
+                .forEach(n => networkRules[n.status].execute(n, 0))
+
+            while (network.nodes.filter(n => n.status == ActiveEnd).length > 0) {
+                network.it++
+                network.nodes.forEach(n => {
+                    n.setStatus()
+                    if (n.status == ActiveEnd) {
+                        networkRules[n.status].execute(n, network.nodes.length)
+                    }
+                })
+            }
+            network.nodes.forEach(n => {
+                if (n.status == DeadEnd) {
+                    networkRules[n.status].execute(n, network.nodes.length)
+                }
+            })
+        }
+
+
+
         // while (network.nodes.filter(n => n.status == EverySixth|| n.status == ActiveEnd).length > 0) {
         //     network.it++
         //     network.nodes.forEach(n => {

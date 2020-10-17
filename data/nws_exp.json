@@ -1,17 +1,17 @@
 {
     "hasRandomSeed": false,
-    "seed": 628567083462835500,
+    "seed": 130600258047717200,
     "showCurves": false,
-    "centerMargin": 250,
+    "centerMargin": 50,
     "iterations": 0,
     "maxNodeSize": 2000,
     "numberOfSeeds": [
         2,
-        2
+        5
     ],
     "numberOfSprouts": [
-        3,
-        5
+        1,
+        1
     ],
     "sproutDeviation": [
         20,
@@ -75,14 +75,14 @@
                 },
                 "bounds": {
                     "lower": {
-                        "start": 5,
-                        "end": 15
+                        "start": 7,
+                        "end": 5
                     }
                 },
                 "controlPoints": {
                     "one": {
-                        "x": 0.5,
-                        "y": 0.5
+                        "x": 0.2,
+                        "y": 0.9
                     }
                 },
                 "isParabola": false
@@ -121,8 +121,8 @@
                 },
                 "bounds": {
                     "lower": {
-                        "start": 0,
-                        "end": 0
+                        "start": 10,
+                        "end": 20
                     }
                 },
                 "controlPoints": {
@@ -144,7 +144,7 @@
                 "bounds": {
                     "lower": {
                         "start": 80,
-                        "end": 110
+                        "end": 100
                     }
                 },
                 "controlPoints": {
