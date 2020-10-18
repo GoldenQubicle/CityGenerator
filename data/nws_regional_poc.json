@@ -1,10 +1,10 @@
 {
     "hasRandomSeed": false,
-    "hasRiver": false,
-    "seed": 222034861633271900,
+    "hasRiver": true,
+    "seed": 26875794654075784,
     "showCurves": false,
     "centerMargin": 50,
-    "iterations": 0,
+    "iterations": 75,
     "maxNodeSize": 5500,
     "numberOfSeeds": [
         2,

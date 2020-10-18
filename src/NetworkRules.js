@@ -86,13 +86,14 @@ let SproutNodesRule = {
 
 let SpawnNSproutRule = {
     execute: function (seeds) {
+        //spawn & sprout nodes
         SpawnNodesRule.execute(seeds)
         network.nodes.forEach(n => {
             if (n.status == Isolated) {
                 SproutNodesRule.execute(n, 0)
             }
         })
-
+        //grow active ends until out of canvas bounds
         while (network.nodes.filter(n => n.status == ActiveEnd).length > 0) {
             network.it++
             network.nodes.forEach(n => {
@@ -102,62 +103,47 @@ let SpawnNSproutRule = {
                 }
             })
         }
-
+        //connect potential dead-ends
         network.nodes.forEach(n => {
             if (n.status == DeadEnd) {
                 networkRules[n.status].execute(n, network.nodes.length)
             }
+            n.setStatus()
         })
-        print(network.nodes)
-
-        for (let i = 0; i < 5; i++) {
-            network.nodes.filter(n => n.status == AdjentToIntersection)
-                .forEach(n => networkRules[n.status].execute(n, 0))
-
-            while (network.nodes.filter(n => n.status == ActiveEnd).length > 0) {
-                network.it++
-                network.nodes.forEach(n => {
-                    n.setStatus()
-                    if (n.status == ActiveEnd) {
-                        networkRules[n.status].execute(n, network.nodes.length)
-                    }
-                })
-            }
-            network.nodes.forEach(n => {
-                if (n.status == DeadEnd) {
-                    networkRules[n.status].execute(n, network.nodes.length)
-                }
-            })
-        }
-
-
-
-        // while (network.nodes.filter(n => n.status == EverySixth|| n.status == ActiveEnd).length > 0) {
-        //     network.it++
-        //     network.nodes.forEach(n => {
-        //         n.setStatus()
-        //         if (n.status == EverySixth || n.status == ActiveEnd) {
-        //             networkRules[n.status].execute(n, network.nodes.length)
-        //         }
-        //     })
-        // }
-
-        // while (network.nodes.filter(n => n.status == EveryThird|| n.status == ActiveEnd).length > 0) {
-        //     network.it++
-        //     network.nodes.forEach(n => {
-        //         n.setStatus()
-        //         if (n.status == EveryThird || n.status == ActiveEnd) {
-        //             networkRules[n.status].execute(n, network.nodes.length)
-        //         }
-        //     })
-        // }
-
+        //store the seeds
+        network.seeds = network.nodes.filter(n => n.connections >= 3)
     },
     debugDraw: function () {
-        // SpawnNodesRule.debugDraw()
-
         network.nodes.forEach(n => {
 
+        })
+    }
+}
+
+let AdjacentToIntersectionRule = {
+    //344345049053786700
+    //26875794654075784 w river!
+    radius : 125,
+    execute: function (n, i) {
+        let dist = network.seeds
+            .map(nc => p5.Vector.dist(nc.pos, n.pos))
+            .filter(d => d < this.radius)
+        let sum = dist.reduce((acc, val) => acc + val, 0)
+        if (sum * dist.length > 0) {
+            let p = map(sum, 0, this.radius * dist.length, 0, 1)
+            let r = random(0, 1)
+
+            if (r > p) {
+                RandomLeftRightRule.execute(n, 0)
+            }
+        }
+
+    },
+    debugDraw: function (n) { 
+        network.seeds.forEach(s =>{
+            noFill( )
+            stroke('beige')
+            circle(s.pos.x, s.pos.y, this.radius * 2)
         })
     }
 }
@@ -327,6 +313,7 @@ const SpreadHeading = "SpreadHeading"
 const NodeDeadEnd = "NodeDeadEnd"
 const RandomLeftRight = "RandomLeftRight"
 const RandomLeftRightChance = "RandomLeftRightChance"
+const AdjacentToIntersection = "AdjacentToIntersection"
 const Nothing = "Nothing"
 
 
@@ -354,6 +341,7 @@ const NodeRulesMapping = {
     NodeDeadEnd: NodeEndRule,
     RandomLeftRight: RandomLeftRightRule,
     RandomLeftRightChance: RandomLeftRightChanceRule,
+    AdjacentToIntersection: AdjacentToIntersectionRule,
     Nothing: NodeNoActionRule,
 }
 

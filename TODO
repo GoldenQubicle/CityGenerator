@@ -1023,6 +1023,13 @@ TODO:
 
 
 BUGS:
+  ☐ intersections not detected @created(18-10-2020 16:54)
+    seen it a couple of times before already but had ignored it, 
+    however there's a bug wherein two active heads paths can cross each other and not create an intersection
+    so how it works atm; for each next node intersection with existing edges is checked, 
+    if true, no next node is returned which causes the active head to be marked as deadend
+    the node end rule then tries to connect to another node, within a certain radius
+    (which atm is dist to its 1st neigbor and is kinda weird and arbitrary tbh)
   
   ☐ collapsing split creates wrong neighbor count node @created(06-09-2020 12:29)
     basically, there're situations where a head splits, however, the split angle is too small

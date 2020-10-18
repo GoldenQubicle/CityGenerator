@@ -21,7 +21,7 @@ const EveryFourth = "EveryFourth"
 const EveryFifth = "EveryFifth"
 const EverySixth = "EverySixth"
 const NoAction = "NoAction"
-const AdjentToIntersection = "AdjentToIntersection"
+const NextToIntersection = "NextToIntersection"
 
 // dictionary to link the node status names to actual functions
 const NodeStatusMapping = {
@@ -32,7 +32,7 @@ const NodeStatusMapping = {
     EveryFourth: EveryFourthStatus,
     EveryFifth: EveryFifthStatus,
     EverySixth: EverySixthStatus,
-    AdjentToIntersection: AdjentToIntersectionStatus
+    NextToIntersection: AdjentToIntersectionStatus
 }
 
 // array filled with statuses as determined by network settings
@@ -115,6 +115,6 @@ function EverySixthStatus(node) {
 
 function AdjentToIntersectionStatus(node){
     if(node.connections == 2 && node.NoC > 4){
-        return AdjentToIntersection
+        return NextToIntersection
     }
 }

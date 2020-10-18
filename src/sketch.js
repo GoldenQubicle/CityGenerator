@@ -4,7 +4,7 @@ let network
 let river
 let shapes = []
 function preload() {
-  networkSettings = loadJSON("data/nws_exp.json")
+  networkSettings = loadJSON("data/nws_regional_poc.json")
 }
 
 function setup() {
@@ -42,21 +42,21 @@ function generate() {
 function draw() {
   background(128)
   river.display()
-  network.display({showNodes: false})
+  network.display({showNodes: true})
   
   if (networkSettings.showCurves) {
     responseCurves.display()
   }
 
-  // networkRules[Spawn].debugDraw()
+  // networkRules[NextToIntersection].debugDraw()
 
   network.nodes.forEach(n => {
     if (n.status == ActiveEnd) {
-      networkRules[n.status].debugDraw(n)
+      // networkRules[n.status].debugDraw(n)
     }
   })
 
-  shapes.forEach(s => s.display())
+  // shapes.forEach(s => s.display())
   // network.stats()   
   noLoop()
 }
