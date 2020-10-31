@@ -58,8 +58,8 @@ class Edge {
   }
 
   getNormals() {
-    let dx = this.end.x - this.start.x
-    let dy = this.end.y - this.start.y
+    let dx = this.end.pos.x - this.start.pos.x
+    let dy = this.end.pos.y - this.start.pos.y
     return {
       n1: createVector(dy, -dx).normalize(),
       n2: createVector(-dy, dx).normalize()

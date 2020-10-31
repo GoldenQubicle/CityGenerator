@@ -46,7 +46,7 @@ function draw() {
   let mnw = createMetaNetwork()
   print(mnw)
   mnw.metaEdges.forEach(e => e.display('orange'))
-  // mnw.metaEdges[selectedEdge].display('purple')
+  mnw.metaEdges[selectedEdge].display('purple')
   mnw.metaEdges[selectedEdge].start.display()
   let node = 15
   mnw.metaNodes[node].neighbors.forEach(n =>
@@ -56,12 +56,12 @@ function draw() {
     })
 
   // mnw.metaEdges[1].start.neighbors[1].display()
-  let pathNodes = detectCyclesMetaNetwork(mnw)
-  let verts = pathNodes.map(n => n.node.pos).flat()
-  // print(visitedEdges) 
-  print(verts)
-  let shape = new Shape(verts)
-  shape.display()
+  // let pathNodes = detectCyclesMetaNetwork(mnw)
+  // let verts = pathNodes.map(n => n.node.pos).flat()
+  // // print(visitedEdges) 
+  // print(verts)
+  // let shape = new Shape(verts)
+  // shape.display()
 
   // print(mnw)
   // a closed shape, essentially a single edge
