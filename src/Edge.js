@@ -14,7 +14,7 @@ class Edge {
     let height = Math.abs(this.start.pos.y - this.end.pos.y)
     let x = this.start.pos.x < this.end.pos.x ? this.start.pos.x : this.end.pos.x
     let y = this.start.pos.y < this.end.pos.y ? this.start.pos.y : this.end.pos.y
-    return { x: x, y: y, width: width, height: height, edge : this }
+    return { x: x, y: y, width: width, height: height, edge: this }
   }
 
   asLine() {
@@ -36,7 +36,7 @@ class Edge {
     this.length = this.start.pos.dist(this.end.pos);
   }
 
-  getOther(node){
+  getOther(node) {
     return this.start == node ? this.end : this.start
   }
 
@@ -49,12 +49,12 @@ class Edge {
       (this.start == n2 && this.end == n1)
   }
 
-  getPointOn(t){
+  getPointOn(t) {
     return p5.Vector.lerp(this.start.pos, this.end.pos, t)
   }
 
-  getAngle(){
-    return createVector(0.000001,0).angleBetween(p5.Vector.sub(this.end.pos, this.start.pos))
+  getAngle() {
+    return createVector(0.000001, 0).angleBetween(p5.Vector.sub(this.end.pos, this.start.pos))
   }
 
   getNormals() {
@@ -66,27 +66,40 @@ class Edge {
     };
   }
 
+  castNormalsFrom(t, length) {
+    let m = this.getPointOn(t)
+    let normals = this.getNormals()
+    let n1 = normals.n1.setMag(length).add(m)
+    let n2 = normals.n2.setMag(length).add(m)
+    return { from: m, normal1: n1, normal2: n2 }
+  }
+
   display(color) {
     if (color != undefined)
       stroke(color)
     else
       stroke(0)
 
+    // if (this.shapes == 1) {
+    //   stroke('red')
+    // }
+    // if (this.shapes == 2) {
+    //   stroke('white')
+    // }
+
     strokeWeight(1)
     line(this.start.pos.x, this.start.pos.y, this.end.pos.x, this.end.pos.y);
 
-    
-
 
     //normals from mid point
-    let m = this.getPointOn(.5)
-    let normals = this.getNormals()
-    let n1 = normals.n1.setMag(100).add(m)
-    let n2 = normals.n2.setMag(100).add(m)
-    stroke('white')
-    line(m.x, m.y, n1.x, n1.y)
-    line(m.x, m.y, n2.x, n2.y)
-    
+    // let m = this.getPointOn(.5)
+    // let normals = this.getNormals()
+    // let n1 = normals.n1.setMag(1000).add(m)
+    // let n2 = normals.n2.setMag(1000).add(m)
+    // stroke('white')
+    // line(m.x, m.y, n1.x, n1.y)
+    // line(m.x, m.y, n2.x, n2.y)
+
     // fill('yellow')
     // noStroke()
     // circle(m.x, m.y, 4)

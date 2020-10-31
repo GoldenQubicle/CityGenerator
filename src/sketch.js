@@ -49,11 +49,10 @@ function draw() {
   mnw.metaEdges[selectedEdge].display('purple')
   mnw.metaEdges[selectedEdge].start.display()
   let node = 15
-  mnw.metaNodes[node].neighbors.forEach(n =>
-    {
-      stroke('black')
-      line(mnw.metaNodes[node].pos.x,mnw.metaNodes[node].pos.y, n.pos.x, n.pos.y )
-    })
+  mnw.metaNodes[node].neighbors.forEach(n => {
+    stroke('black')
+    line(mnw.metaNodes[node].pos.x, mnw.metaNodes[node].pos.y, n.pos.x, n.pos.y)
+  })
 
   // mnw.metaEdges[1].start.neighbors[1].display()
   // let pathNodes = detectCyclesMetaNetwork(mnw)
@@ -87,14 +86,14 @@ function detectCyclesMetaNetwork(mnw) {
     let nextnn = getOtherMetaNeighbors(current)
     toCheck.unshift(...nextnn)
     print("enqueue", toCheck.length)
-    current = toCheck.pop()    
+    current = toCheck.pop()
     print("dequeue", toCheck.length)
   }
 
   let nodes = current.path.map(e => e.verts.map(v => v)).flat()
   nodes.push(edge.start) // not sure if always needed tbh
   nodes = nodes.filter(onlyUnique)
-  
+
   let x = nodes.reduce((total, node) => total + node.pos.x, 0) / nodes.length
   let y = nodes.reduce((total, node) => total + node.pos.y, 0) / nodes.length
   let avarage = new Node(createVector(x, y))
@@ -160,6 +159,30 @@ function createMetaNetwork() {
     pair[0].end.metaNeighbors.push({ node: pair[0].start, edge: pair[0] })
     metaEdges.push(pair[0])
   })
+
+  //by definition an edge can be part of 2 shapes at most,
+  //or just 1 shape if at the outside of the graph
+  //to find out cast a normal ray on both sides of the meta edge
+  //and see if it intersects with any of the other meta edges
+  metaEdges.forEach(me => {
+    me.shapes = 0
+    let { from, normal1, normal2 } = me.castNormalsFrom(.5, 1000)
+    let otherEdges = metaEdges.filter(e => e != me)
+    let normals = []
+    let n1Line = [[from.x, from.y], [normal1.x, normal1.y]]
+    let n2Line = [[from.x, from.y], [normal2.x, normal2.y]]
+    normals.push(n1Line)
+    normals.push(n2Line)
+    for (n of normals) {
+      for (e of otherEdges) {        
+        if (geometric.lineIntersectsLine(e.asLine(), n)) {
+          me.shapes++
+          break
+        }
+      }
+    }
+  })
+
   return { metaNodes, metaEdges }
 }
 
