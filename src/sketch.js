@@ -4,7 +4,7 @@ let network
 let river
 let shapes = []
 function preload() {
-  networkSettings = loadJSON("data/nws_regional_poc.json")
+  networkSettings = loadJSON("data/nws_exp.json")
 }
 
 function setup() {
@@ -42,7 +42,7 @@ function generate() {
 function draw() {
   background(128)
   river.display()
-  network.display({showNodes: true})
+  network.display({showNodes: false})
   
   if (networkSettings.showCurves) {
     responseCurves.display()

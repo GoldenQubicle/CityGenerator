@@ -2,6 +2,11 @@
     "hasRandomSeed": false,
     "hasRiver": true,
     "seed": 26875794654075784,
+    "seeds": [
+        26875794654075784,
+        146117372336953600,
+        292353570807130750
+    ],
     "showCurves": false,
     "centerMargin": 50,
     "iterations": 75,
@@ -30,7 +35,7 @@
         {
             "nodeStatus": "DeadEnd",
             "functionName": "NodeDeadEnd"
-        },     
+        },
         {
             "nodeStatus": "Isolated",
             "functionName": "SproutNodes"
