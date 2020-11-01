@@ -6,7 +6,7 @@ let shapes = []
 function setup() {
   createCanvas(1024, 1024, P2D)
 
-  graph = constructGraph(setup1)
+  graph = constructGraph(grid)
   // graph = removeDeadEnds(graph)
   // shapes.push(new Shape(constructGraph(square).nodes.map(n => n.pos)))
 }
@@ -80,19 +80,28 @@ function detectCyclesMetaNetwork(mnw) {
   let toCheckEdges = []
   let edge = mnw.metaEdges[selectedEdge]
   let current = { node: edge.start, edge: edge, path: [edge] }
-  toCheckEdges.push(current.edge)   
+  toCheckEdges.push(current.edge)
 
   print("start", toCheck.length)
 
   while (current.node != edge.end) {
+    print("current edge:", current.edge.id, current.path)
+
     toCheck.map(mn => mn.edge).forEach(e => toCheckEdges.push(e))
-    // print(visitedEdges)
-    let nextnn = getOtherMetaNeighbors(current)
-      .filter(mn => !toCheckEdges.includes(mn.edge))
+    let nextnn = getOtherMetaNeighbors(current, toCheckEdges)
+
     toCheck.unshift(...nextnn)
-    print("enqueue", toCheck.length)
+    nextnn.forEach(m => print("enqueud edge", m.edge.id))
+
+    let edgeIds = toCheck.map(c => c.edge.id)
+    print("queue:", edgeIds)
+    let wut = toCheck.filter(n => n.edge.id == 18)
+    if (wut.length > 0) {
+      print(wut[0].path.length)
+    }
+
     current = toCheck.pop()
-    print("dequeue", toCheck.length)
+    print("current edge:", current.edge.id, current.path)
   }
   print("found", current)
   let nodes = current.path.map(e => e.verts.map(v => v)).flat()
@@ -109,16 +118,19 @@ function detectCyclesMetaNetwork(mnw) {
   return sorted
 }
 
-function getOtherMetaNeighbors(current) {
+function getOtherMetaNeighbors(current, edges) {
   let node = current.node
   let exclude = current.edge.getOther(current.node)
   let neighbors = node.getOtherNeighbors(exclude)
-  let meta = node.metaNeighbors.filter(mn => neighbors.includes(mn.edge.getOther(node)))
+  let meta = node.metaNeighbors
+    .filter(mn => !edges.includes(mn.edge))
+    .filter(mn => neighbors.includes(mn.edge.getOther(node)))
+    .map(m => m)
   meta.forEach(mn => {
     mn.path = current.path.map(e => e) // map to create new array
     mn.path.push(mn.edge) // add own edge to path
   })
-  return meta
+  return meta.map(m => m)
 }
 
 function createMetaNetwork() {
@@ -128,8 +140,8 @@ function createMetaNetwork() {
   // foreach node create a new 'meta node', which by definition will have > 3 connections
   // then trace each neighbor untill it reaches another node with connections > 3
   // then create 'meta edge' and store all the nodes with connections == 2 as vertices of said meta edge
-  nodes.forEach(node => {    
-    let start = new Node(node.pos)    
+  nodes.forEach(node => {
+    let start = new Node(node.pos)
     start.metaNeighbors = []
     metaNodes.push(start)
     node.neighbors.forEach(nn => {
@@ -170,7 +182,10 @@ function createMetaNetwork() {
   //or just 1 shape if at the outside of the graph
   //to find out cast a normal ray on both sides of the meta edge
   //and see if it intersects with any of the other meta edges
+  let id = 0
   metaEdges.forEach(me => {
+    me.id = id
+    id++
     me.shapes = 0
     let { from, normal1, normal2 } = me.castNormalsFrom(.5, 1000)
     let otherEdges = metaEdges.filter(e => e != me)
@@ -188,6 +203,7 @@ function createMetaNetwork() {
       }
     }
   })
+  print(metaEdges.filter(e => e.verts.length >= 10))
 
   return { metaNodes, metaEdges }
 }

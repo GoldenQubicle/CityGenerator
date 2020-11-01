@@ -75,6 +75,14 @@ class Edge {
   }
 
   display(color) {
+
+    let m = this.getPointOn(.5)
+    fill('white')    
+    noStroke()
+    if (this.id != undefined) {
+      text(this.id, m.x, m.y)
+    }
+
     if (color != undefined)
       stroke(color)
     else
@@ -86,6 +94,8 @@ class Edge {
     // if (this.shapes == 2) {
     //   stroke('white')
     // }
+
+   
 
     strokeWeight(1)
     line(this.start.pos.x, this.start.pos.y, this.end.pos.x, this.end.pos.y);
