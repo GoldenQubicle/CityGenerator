@@ -6,7 +6,7 @@ let shapes = []
 function setup() {
   createCanvas(1024, 1024, P2D)
 
-  graph = constructGraph(grid)
+  graph = constructGraph(setup1)
   // graph = removeDeadEnds(graph)
   // shapes.push(new Shape(constructGraph(square).nodes.map(n => n.pos)))
 }
@@ -18,7 +18,7 @@ function draw() {
   translate(width / 2, height / 2)
 
   graph.edges.forEach(e => {
-    // e.display()
+    e.display()
     push()
     let p = e.getPointOn(.5)
     let a = e.getAngle()
@@ -41,26 +41,26 @@ function draw() {
   // }
 
   // shapes = findAllClosedShapes(graph)
-  shapes.forEach(s => s.display())
+  // shapes.forEach(s => s.display())
 
   let mnw = createMetaNetwork()
   print(mnw)
   mnw.metaEdges.forEach(e => e.display('orange'))
   mnw.metaEdges[selectedEdge].display('purple')
   mnw.metaEdges[selectedEdge].start.display()
-  let node = 15
-  mnw.metaNodes[node].neighbors.forEach(n => {
-    stroke('black')
-    line(mnw.metaNodes[node].pos.x, mnw.metaNodes[node].pos.y, n.pos.x, n.pos.y)
-  })
+  // let node = 15
+  // mnw.metaNodes[node].neighbors.forEach(n => {
+  //   stroke('black')
+  //   line(mnw.metaNodes[node].pos.x, mnw.metaNodes[node].pos.y, n.pos.x, n.pos.y)
+  // })
 
   // mnw.metaEdges[1].start.neighbors[1].display()
-  // let pathNodes = detectCyclesMetaNetwork(mnw)
-  // let verts = pathNodes.map(n => n.node.pos).flat()
+  let pathNodes = detectCyclesMetaNetwork(mnw)
+  let verts = pathNodes.map(n => n.node.pos).flat()
   // // print(visitedEdges) 
   // print(verts)
-  // let shape = new Shape(verts)
-  // shape.display()
+  let shape = new Shape(verts)
+  shape.display()
 
   // print(mnw)
   // a closed shape, essentially a single edge
@@ -73,23 +73,28 @@ function draw() {
 
   noLoop()
 }
-let selectedEdge = 3
+let selectedEdge = 15
 
 function detectCyclesMetaNetwork(mnw) {
   let toCheck = []
+  let toCheckEdges = []
   let edge = mnw.metaEdges[selectedEdge]
   let current = { node: edge.start, edge: edge, path: [edge] }
+  toCheckEdges.push(current.edge)   
 
   print("start", toCheck.length)
 
   while (current.node != edge.end) {
+    toCheck.map(mn => mn.edge).forEach(e => toCheckEdges.push(e))
+    // print(visitedEdges)
     let nextnn = getOtherMetaNeighbors(current)
+      .filter(mn => !toCheckEdges.includes(mn.edge))
     toCheck.unshift(...nextnn)
     print("enqueue", toCheck.length)
     current = toCheck.pop()
     print("dequeue", toCheck.length)
   }
-
+  print("found", current)
   let nodes = current.path.map(e => e.verts.map(v => v)).flat()
   nodes.push(edge.start) // not sure if always needed tbh
   nodes = nodes.filter(onlyUnique)
@@ -108,7 +113,7 @@ function getOtherMetaNeighbors(current) {
   let node = current.node
   let exclude = current.edge.getOther(current.node)
   let neighbors = node.getOtherNeighbors(exclude)
-  let meta = node.metaNeighbors.filter(mn => neighbors.includes(mn.edge.getOther(node))) // not sure why this is needed anymore..?! sad face
+  let meta = node.metaNeighbors.filter(mn => neighbors.includes(mn.edge.getOther(node)))
   meta.forEach(mn => {
     mn.path = current.path.map(e => e) // map to create new array
     mn.path.push(mn.edge) // add own edge to path
@@ -123,14 +128,15 @@ function createMetaNetwork() {
   // foreach node create a new 'meta node', which by definition will have > 3 connections
   // then trace each neighbor untill it reaches another node with connections > 3
   // then create 'meta edge' and store all the nodes with connections == 2 as vertices of said meta edge
-  nodes.forEach(node => {
-    let start = new Node(node.pos)
+  nodes.forEach(node => {    
+    let start = new Node(node.pos)    
     start.metaNeighbors = []
     metaNodes.push(start)
     node.neighbors.forEach(nn => {
       let verts = []
       let step = node
       let next = nn
+      verts.push(step)
       verts.push(next)
       while (next.connections == 2) {
         let nextStep = next.getOtherNeighbors(step)[0]
@@ -174,7 +180,7 @@ function createMetaNetwork() {
     normals.push(n1Line)
     normals.push(n2Line)
     for (n of normals) {
-      for (e of otherEdges) {        
+      for (e of otherEdges) {
         if (geometric.lineIntersectsLine(e.asLine(), n)) {
           me.shapes++
           break
