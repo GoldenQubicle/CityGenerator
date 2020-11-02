@@ -29,7 +29,7 @@ function draw() {
     pop()
   })
 
-  // graph.nodes.forEach(n => n.display())
+  graph.nodes.forEach(n => n.display())
 
   // if (isDetecting) {
   //   fill('green')
@@ -47,7 +47,7 @@ function draw() {
   print(mnw)
   mnw.metaEdges.forEach(e => e.display('orange'))
   mnw.metaEdges[selectedEdge].display('purple')
-  mnw.metaEdges[selectedEdge].start.display()
+  // mnw.metaEdges[selectedEdge].start.display()
   // let node = 15
   // mnw.metaNodes[node].neighbors.forEach(n => {
   //   stroke('black')
@@ -55,82 +55,82 @@ function draw() {
   // })
 
   // mnw.metaEdges[1].start.neighbors[1].display()
-  let pathNodes = detectCyclesMetaNetwork(mnw)
-  let verts = pathNodes.map(n => n.node.pos).flat()
+  let pathNodes = detectCyclesForMetaEdge(mnw.metaEdges[selectedEdge])
+  let verts0 = pathNodes[0].map(n => n.node.pos).flat()
+  let verts1 = pathNodes[1].map(n => n.node.pos).flat()
   // // print(visitedEdges) 
   // print(verts)
-  let shape = new Shape(verts)
-  shape.display()
+  let shape0 = new Shape(verts0)
+  let shape1 = new Shape(verts1)
+  shape0.display()
+  shape1.display()
 
-  // print(mnw)
-  // a closed shape, essentially a single edge
-  // i.e. start & end node are the same
-  let loop = mnw.metaEdges.filter(e => e.start.pos.x == e.end.pos.x)
-  // let shape = new Shape(loop[0].verts.map(v => v.pos));
-  // shape.display()
   pop()
-
-
   noLoop()
 }
-let selectedEdge = 15
+let selectedEdge = 28
 
-function detectCyclesMetaNetwork(mnw) {
-  let toCheck = []
-  let toCheckEdges = []
-  let edge = mnw.metaEdges[selectedEdge]
+function detectCyclesForMetaEdge(edge) {
+  let foundPaths = 0 // counter
+  let pathNodes = [] // the nodes for the found path(s)
+  let theQueue = [] // the queue, obviously
+  let edgesExcluded = [] // edges which have been visited, and those already in queue
+
+  //the current object always consists of a node, the edge said node belongs to
+  //and the path it has taken in the graph
   let current = { node: edge.start, edge: edge, path: [edge] }
-  toCheckEdges.push(current.edge)
+  edgesExcluded.push(current.edge)
 
-  print("start", toCheck.length)
+  while (foundPaths != edge.shapes) {
+    if (current.node != edge.end) {
+      print("current edge:", current.edge.id, current.path)
+      //update edges visited and already in queue
+      theQueue.map(mn => mn.edge).forEach(e => edgesExcluded.push(e))
+      // get the other edges for the current object, excluding those visited or already in queue
+      let nextnn = getOtherMetaNeighbors(current, edgesExcluded)
+      //insert at front of queue
+      theQueue.unshift(...nextnn)
+      //debug info
+      nextnn.forEach(m => print("enqueud edge", m.edge.id))
+      let edgeIds = theQueue.map(c => c.edge.id)
+      print("queue:", edgeIds)
+      // pop the end of the queue
+      current = theQueue.pop()
+      print("current edge:", current.edge.id, current.path)
+    } else {
+      print("found", current)
+      foundPaths++
+      // get all the nodes which form the path, and filter out duplicates
+      let nodes = current.path.map(e => e.verts.map(v => v)).flat()
+      nodes = nodes.filter(onlyUnique)
 
-  while (current.node != edge.end) {
-    print("current edge:", current.edge.id, current.path)
+      // to construct a shape we need to make sure the vertices are in clockwise order
+      // thus we need to sort the nodes, and in order to sort we need to have a point of reference
+      // thus compute the avarage x & y position and create a new node as said point of reference
+      let x = nodes.reduce((total, node) => total + node.pos.x, 0) / nodes.length
+      let y = nodes.reduce((total, node) => total + node.pos.y, 0) / nodes.length
+      let avarage = new Node(createVector(x, y))
+      let sorted = sortNodesClockwise(avarage, nodes).neighbors
+      pathNodes.push(sorted)
 
-    toCheck.map(mn => mn.edge).forEach(e => toCheckEdges.push(e))
-    let nextnn = getOtherMetaNeighbors(current, toCheckEdges)
-
-    toCheck.unshift(...nextnn)
-    nextnn.forEach(m => print("enqueud edge", m.edge.id))
-
-    let edgeIds = toCheck.map(c => c.edge.id)
-    print("queue:", edgeIds)
-    let wut = toCheck.filter(n => n.edge.id == 18)
-    if (wut.length > 0) {
-      print(wut[0].path.length)
+      //clear the queue
+      theQueue = []
+      //exclude the edges from the 1st shape from the search in order to find the 2nd shape
+      edgesExcluded = current.path.map(e => e).flat()
+      // finally reset the current object to start
+      current = { node: edge.start, edge: edge, path: [edge] }
     }
-
-    current = toCheck.pop()
-    print("current edge:", current.edge.id, current.path)
   }
-  print("found", current)
-  let nodes = current.path.map(e => e.verts.map(v => v)).flat()
-  nodes.push(edge.start) // not sure if always needed tbh
-  nodes = nodes.filter(onlyUnique)
-
-  let x = nodes.reduce((total, node) => total + node.pos.x, 0) / nodes.length
-  let y = nodes.reduce((total, node) => total + node.pos.y, 0) / nodes.length
-  let avarage = new Node(createVector(x, y))
-  avarage.display()
-
-  let sorted = sortNodesClockwise(avarage, nodes).neighbors
-
-  return sorted
+  return pathNodes
 }
 
 function getOtherMetaNeighbors(current, edges) {
-  let node = current.node
-  let exclude = current.edge.getOther(current.node)
-  let neighbors = node.getOtherNeighbors(exclude)
-  let meta = node.metaNeighbors
-    .filter(mn => !edges.includes(mn.edge))
-    .filter(mn => neighbors.includes(mn.edge.getOther(node)))
-    .map(m => m)
+  let meta = current.node.metaNeighbors.filter(mn => !edges.includes(mn.edge))
   meta.forEach(mn => {
     mn.path = current.path.map(e => e) // map to create new array
     mn.path.push(mn.edge) // add own edge to path
   })
-  return meta.map(m => m)
+  return meta
 }
 
 function createMetaNetwork() {
@@ -208,109 +208,15 @@ function createMetaNetwork() {
   return { metaNodes, metaEdges }
 }
 
-
 function keyPressed() {
   loop()
 }
 
 function keyReleased() {
-
 }
 
-function mouseClicked() {
-  // detectClosedShape()
-  loop()
+function mouseClicked() {  loop()
 
-}
-
-let isDetecting = false
-let toCheck = []
-let start
-let current
-let stepAngle
-let step
-let check
-let verts = []
-let temp
-let visited = []
-let next
-let shape
-
-function detectClosedShape() {
-  if (!isDetecting) {
-    toCheck = graph.nodes
-      .filter(n => n.connections >= 3)
-      .map(n => sortNodesClockwise(n, n.neighbors))
-    check = toCheck[5]
-    // print(check)
-    start = check.node
-    // get the first neighbor
-    current = check.node
-    let n = 0
-    stepAngle = check.neighbors[n].angle == 360 ? 0 : check.neighbors[n].angle
-    step = check.neighbors[n].node
-    next = true
-    verts = []
-    verts.push(current.pos)
-    temp = 0
-    shape = true;
-    isDetecting = true
-    visited = []
-  }
-  // while (isDetecting) {
-  else if (isDetecting) {
-    temp++
-    print(`--------step ${temp}${stepAngle}----------`)
-    if (visited.includes(step)) {
-      print("already been here!")
-      isDetecting = false
-      return
-    } else {
-      visited.push(step)
-    }
-    if (step.connections == 2) {
-      verts.push(step.pos)
-      let nextStep = step.getOtherNeighbors(current)[0]
-      current = step
-      step = nextStep
-      stepAngle = degrees(getAngle(current, step))
-      stepAngle = stepAngle == 360 ? 0 : stepAngle
-      print("connection 2", stepAngle)
-    } else {
-      verts.push(step.pos)
-      let neighbors = step.getOtherNeighbors(current)
-      let sorted = sortNodesClockwise(step, neighbors)
-      print(sorted, stepAngle)
-      // find out all options with a larger angle than stepAngle
-      // in order to go clockwise
-      let options = sorted.neighbors
-        .filter(n => n.angle > stepAngle)
-        .sort((n1, n2) => n1.a < n2.a ? -1 : 1)
-      print(options)
-      // if no clockwise options are found, reverse the
-      // clockwise sort in order to take the smallest angle anti-clockwise
-      if (options.length == 0) {
-        print("options to sort", sorted)
-        options = sorted.neighbors.reverse()
-      }
-      // if there're more than 2 options make sure there
-      // isn't the same as the current step angle
-      if (options.length >= 2) {
-        options = options.filter(o => o.angle != stepAngle)
-      }
-      current = step
-      step = options[0].node
-      // zero step angle fucks up the clockwise ordering, therefor keep current step angle
-      stepAngle = options[0].angle == 360 ? 0 : options[0].angle
-    }
-    if (step == start) {
-      print("found shape!")
-      print(verts)
-      shapes.push(new Shape(verts))
-      isDetecting = false
-      return
-    }
-  }
 }
 
 
