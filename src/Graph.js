@@ -130,7 +130,7 @@ let square = [
 
 let grid = [
   // { angle: 90, length: 25 },
-  { angle: -1, length: 50, repeat: 5 },
+  { angle: 0, length: 50, repeat: 5 },
   { angle: 90, length: 50 },
   { angle: 0, length: 50, repeat: 5 },
   { angle: 90, length: 50 },

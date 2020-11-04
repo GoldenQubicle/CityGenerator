@@ -197,9 +197,11 @@ function createMetaNetwork() {
   // since we indiscrimentaly created new edges above we have twice as many now.
   // that is, for every node there are only dead-end edges going out and we need to connect everything
   // to do this group the edges by a unique key, a combination of midpoint & vertices length
+  // however as the key is based on x & y values, some combinations could be the same, hence subtract & add 'magic' values
   // recall every start of an edge already is a new meta node
   // thus for every pair of edges, swap the dead-ends for the start of the other and take the 1st edge
-  let edgePairs = groupBy(metaEdges, e => (e.midPoint.x + e.midPoint.y + e.verts.length).toFixed(5))
+  
+  let edgePairs = groupBy(metaEdges, e => (abs(e.midPoint.x)+7 / abs(e.midPoint.y)-7 + e.verts.length).toFixed(5))
   print(edgePairs)
   metaEdges = []
   edgePairs.forEach(pair => {
