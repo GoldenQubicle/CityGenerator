@@ -18,7 +18,7 @@ function draw() {
   translate(width / 2, height / 2)
 
   graph.edges.forEach(e => {
-    e.display()
+    // e.display()
     push()
     let p = e.getPointOn(.5)
     let a = e.getAngle()
@@ -55,26 +55,48 @@ function draw() {
   // })
 
   // mnw.metaEdges[1].start.neighbors[1].display()
-  let pathNodes = detectCyclesForMetaEdge(mnw.metaEdges[selectedEdge])
-  let verts0 = pathNodes[0].map(n => n.node.pos).flat()
-  let verts1 = pathNodes[1].map(n => n.node.pos).flat()
-  // // print(visitedEdges) 
-  // print(verts)
-  let shape0 = new Shape(verts0)
-  let shape1 = new Shape(verts1)
-  shape0.display()
-  shape1.display()
+
+  // let pathEdges = detectCyclesForMetaEdge(mnw.metaEdges[selectedEdge])
+  // let pathNodes = pathEdgesToNodes(pathEdges)
+  // let shapes = createShapeFromPathNodes(pathNodes)
+  let shapes = detectShapesMetaNetwork(mnw)
+  print(shapes.length)
+  shapes.forEach(s => s.display())
 
   pop()
   noLoop()
 }
-let selectedEdge = 28
 
-function detectCyclesForMetaEdge(edge) {
-  let foundPaths = 0 // counter
-  let pathNodes = [] // the nodes for the found path(s)
+let selectedEdge = 8
+
+function detectShapesMetaNetwork(mnw) {
+  let pathEdges = []
+  let toCheck = mnw.metaEdges.map(me => me)
+  let foundPaths = mnw.metaEdges.map(me => [])
+
+  while (toCheck.length > 0) {
+    let me = toCheck.pop()    
+    // only do cycle detection if not all path shapes have been found for the current edge
+    // pass down any path shape already found in order to exclude it from search
+    if (foundPaths[me.id].length < me.shapes) {
+      let pe = detectCyclesForMetaEdge(me, foundPaths[me.id])
+      pe.forEach(p => {
+        pathEdges.push(p)
+        //go over all edges of the path, and push said path to indicate the edge already belongs to a path shape
+        p.forEach(e => foundPaths[e.id].push(p))
+      })
+    }       
+  }
+  let pathNodes = pathEdgesToNodes(pathEdges)
+  return createShapeFromPathNodes(pathNodes)
+}
+
+function detectCyclesForMetaEdge(edge, foundPath) {
+  // print(foundPath.flat())
+  let foundPaths = foundPath.length // counter
+  let pathEdges = [] // the edges for the found path(s)
   let theQueue = [] // the queue, obviously
-  let edgesExcluded = [] // edges which have been visited, and those already in queue
+  let edgesExcluded = foundPath.length == 0 ? [] : foundPath.flat() // edges which have been visited, and those already in queue
 
   //the current object always consists of a node, the edge said node belongs to
   //and the path it has taken in the graph
@@ -83,7 +105,7 @@ function detectCyclesForMetaEdge(edge) {
 
   while (foundPaths != edge.shapes) {
     if (current.node != edge.end) {
-      print("current edge:", current.edge.id, current.path)
+      // print("current edge:", current.edge.id, current.path)
       //update edges visited and already in queue
       theQueue.map(mn => mn.edge).forEach(e => edgesExcluded.push(e))
       // get the other edges for the current object, excluding those visited or already in queue
@@ -91,28 +113,16 @@ function detectCyclesForMetaEdge(edge) {
       //insert at front of queue
       theQueue.unshift(...nextnn)
       //debug info
-      nextnn.forEach(m => print("enqueud edge", m.edge.id))
+      // nextnn.forEach(m => print("enqueud edge", m.edge.id))
       let edgeIds = theQueue.map(c => c.edge.id)
-      print("queue:", edgeIds)
+      // print("queue:", edgeIds)
       // pop the end of the queue
       current = theQueue.pop()
-      print("current edge:", current.edge.id, current.path)
+      // print("current edge:", current.edge.id, current.path)
     } else {
-      print("found", current)
+      // print("found", current)
       foundPaths++
-      // get all the nodes which form the path, and filter out duplicates
-      let nodes = current.path.map(e => e.verts.map(v => v)).flat()
-      nodes = nodes.filter(onlyUnique)
-
-      // to construct a shape we need to make sure the vertices are in clockwise order
-      // thus we need to sort the nodes, and in order to sort we need to have a point of reference
-      // thus compute the avarage x & y position and create a new node as said point of reference
-      let x = nodes.reduce((total, node) => total + node.pos.x, 0) / nodes.length
-      let y = nodes.reduce((total, node) => total + node.pos.y, 0) / nodes.length
-      let avarage = new Node(createVector(x, y))
-      let sorted = sortNodesClockwise(avarage, nodes).neighbors
-      pathNodes.push(sorted)
-
+      pathEdges.push(current.path)
       //clear the queue
       theQueue = []
       //exclude the edges from the 1st shape from the search in order to find the 2nd shape
@@ -121,7 +131,29 @@ function detectCyclesForMetaEdge(edge) {
       current = { node: edge.start, edge: edge, path: [edge] }
     }
   }
-  return pathNodes
+  return pathEdges
+}
+
+function pathEdgesToNodes(pathEdges) {
+  return pathEdges.map(pe => {
+    // get all the nodes which form the path, and filter out duplicates
+    let nodes = pe.map(e => e.verts.map(v => v)).flat()
+    nodes = nodes.filter(onlyUnique)
+    // to construct a shape we need to make sure the vertices are in clockwise order
+    // thus we need to sort the nodes, and in order to sort we need to have a point of reference
+    // thus compute the avarage x & y position and create a new node as said point of reference
+    let x = nodes.reduce((total, node) => total + node.pos.x, 0) / nodes.length
+    let y = nodes.reduce((total, node) => total + node.pos.y, 0) / nodes.length
+    let avarage = new Node(createVector(x, y))
+    return sortNodesClockwise(avarage, nodes).neighbors
+  })
+}
+
+function createShapeFromPathNodes(pathNodes) {
+  return pathNodes.map(pn => {
+    let verts = pn.map(n => n.node.pos).flat()
+    return new Shape(verts)
+  })
 }
 
 function getOtherMetaNeighbors(current, edges) {
@@ -168,6 +200,7 @@ function createMetaNetwork() {
   // recall every start of an edge already is a new meta node
   // thus for every pair of edges, swap the dead-ends for the start of the other and take the 1st edge
   let edgePairs = groupBy(metaEdges, e => (e.midPoint.x + e.midPoint.y + e.verts.length).toFixed(5))
+  print(edgePairs)
   metaEdges = []
   edgePairs.forEach(pair => {
     pair[0].start.replaceNeighbor(pair[0].end, pair[1].start)
@@ -203,8 +236,6 @@ function createMetaNetwork() {
       }
     }
   })
-  print(metaEdges.filter(e => e.verts.length >= 10))
-
   return { metaNodes, metaEdges }
 }
 
@@ -215,7 +246,8 @@ function keyPressed() {
 function keyReleased() {
 }
 
-function mouseClicked() {  loop()
+function mouseClicked() {
+  loop()
 
 }
 
