@@ -39,6 +39,8 @@
             containsNodes : (node, node) -> bool
             getPointOn : (t) -> PVector
             getAngle : () -> angle
+            getNormals : () -> {n1:Pvectpr, n2:Pvector}
+            castNormalsFrom : (t, length) -> {from:Pvector, n1:Pvector, n2:Pvector}
             display : (color)
         }
     ]
@@ -163,7 +165,6 @@ let grid = [
 
 ]
 
-
 function constructGraph(steps) {
   let nodes = []
   let edges = []
@@ -212,7 +213,6 @@ function constructGraph(steps) {
 
 function removeDeadEnds(graph) {
   let toBeRemoved = []
-
   // go over all nodes with 1 connection
   // foreach head follow neighbors with 2 connections
   // and keep track as all those nodes need to go
