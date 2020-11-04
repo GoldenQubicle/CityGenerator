@@ -6,7 +6,7 @@ class Shape {
     leftUp
     rightDown
 
-    constructor(vertices) {
+    constructor(vertices) {   
         this.vertices = vertices.map(v => [v.x, v.y])
         let bounds = geometric.polygonBounds(this.vertices)
         this.leftUp = createVector(bounds[0][0], bounds[0][1])

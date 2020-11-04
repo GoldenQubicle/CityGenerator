@@ -33,7 +33,7 @@ function createMetaNetworkFromGraph(graph) {
     // however as the key is based on x & y values, some combinations could be the same, hence subtract & add 'magic' values
     // recall every start of an edge already is a new meta node
     // thus for every pair of edges, swap the dead-ends for the start of the other and take the 1st edge
-    let edgePairs = groupBy(metaEdges, e => (abs(e.midPoint.x) + 7 / abs(e.midPoint.y) - 7 + e.verts.length).toFixed(5))
+    let edgePairs = groupBy(metaEdges, e => (abs(e.midPoint.x) + 7 / abs(e.midPoint.y) - 7 + e.verts.length).toFixed(5))    
     metaEdges = []
     edgePairs.forEach(pair => {
         pair[0].start.replaceNeighbor(pair[0].end, pair[1].start)
@@ -87,6 +87,7 @@ function detectCyclesInMetaNetwork(mnw) {
     // which is a collection of path edges, gathered in the BFS 
     let pathEdges = []
     let foundPaths = mnw.metaEdges.map(me => [])
+
     mnw.metaEdges.forEach(me => {
         // only do cycle detection if not all path shapes have been found for the current edge
         // pass down any path shape already found in order to exclude it from search
@@ -119,8 +120,11 @@ function detectCyclesForMetaEdge(edge, foundPath) {
     //and the path it has taken in the graph
     let current = { node: edge.start, edge: edge, path: [edge] }
     edgesExcluded.push(current.edge)
+    let nextnn = getOtherMetaNeighbors(current, edgesExcluded)
+    //insert at front of queue
+    theQueue.unshift(...nextnn)
 
-    while (foundPaths != edge.shapes) {
+    while (foundPaths != edge.shapes && current != undefined) {
         if (current.node != edge.end) {
             // print("current edge:", current.edge.id, current.path)
             //update edges visited and already in queue
@@ -131,6 +135,7 @@ function detectCyclesForMetaEdge(edge, foundPath) {
             theQueue.unshift(...nextnn)
             //debug info
             // nextnn.forEach(m => print("enqueud edge", m.edge.id))
+            // print(theQueue)
             let edgeIds = theQueue.map(c => c.edge.id)
             // print("queue:", edgeIds)
             // pop the end of the queue
@@ -176,7 +181,9 @@ function pathEdgesToNodes(pathEdges) {
 }
 
 function createShapeFromPathNodes(pathNodes) {
-    return pathNodes.map(pn => {
+    return pathNodes
+        .filter(pm => pm.length >= 3)
+        .map(pn => {
         let verts = pn.map(n => n.node.pos).flat()
         return new Shape(verts)
     })

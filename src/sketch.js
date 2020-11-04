@@ -1,10 +1,10 @@
 /// <reference path="../node_modules/@types/p5/global.d.ts" />
-
+let mnw
 let network
 let river
 let shapes = []
 function preload() {
-  networkSettings = loadJSON("data/nws_exp.json")
+  networkSettings = loadJSON("data/nws_default.json")
 }
 
 function setup() {
@@ -20,6 +20,10 @@ function setup() {
   // print(responseCurves)
   
   generate()
+  let t = removeDeadEnds({nodes: network.nodes, edges: network.segments})
+  mnw = createMetaNetworkFromGraph(t)
+  shapes = detectCyclesInMetaNetwork(mnw)
+
 }
 
 function generate() {
@@ -42,8 +46,13 @@ function generate() {
 function draw() {
   background(128)
   river.display()
-  network.display({showNodes: false})
-  
+  network.display({showNodes: true})
+  mnw.display()
+  // let selectedEdge = 56
+  // mnw.metaEdges[selectedEdge].display('purple')
+  // let p = mnw.metaEdges[selectedEdge].start.pos
+  // circle(p.x, p.y, 15)
+  // print(mnw.metaEdges[selectedEdge])
   if (networkSettings.showCurves) {
     responseCurves.display()
   }
@@ -56,7 +65,7 @@ function draw() {
     }
   })
 
-  // shapes.forEach(s => s.display())
+  shapes.forEach(s => s.display())
   // network.stats()   
   noLoop()
 }
