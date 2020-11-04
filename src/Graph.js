@@ -39,6 +39,8 @@
             containsNodes : (node, node) -> bool
             getPointOn : (t) -> PVector
             getAngle : () -> angle
+            getNormals : () -> {n1:Pvectpr, n2:Pvector}
+            castNormalsFrom : (t, length) -> {from:Pvector, n1:Pvector, n2:Pvector}
             display : (color)
         }
     ]
@@ -130,7 +132,7 @@ let square = [
 
 let grid = [
   // { angle: 90, length: 25 },
-  { angle: 1, length: 50, repeat: 5 },
+  { angle: 0, length: 50, repeat: 5 },
   { angle: 90, length: 50 },
   { angle: 0, length: 50, repeat: 5 },
   { angle: 90, length: 50 },
@@ -159,10 +161,9 @@ let grid = [
   { from: -34, to: 2 },
   { from: -35, to: 1 },
   { from: -20, to: 50 },
-  { from: -21, to: 49  },
+  { from: -21, to: 49 },
 
 ]
-
 
 function constructGraph(steps) {
   let nodes = []
@@ -187,7 +188,6 @@ function constructGraph(steps) {
         for (let i = 0; i < step.repeat; i++) {
           index = nodes.length - 1
           placeNodeAndEdge(index, step)
-
         }
       }
     }
@@ -213,7 +213,6 @@ function constructGraph(steps) {
 
 function removeDeadEnds(graph) {
   let toBeRemoved = []
-
   // go over all nodes with 1 connection
   // foreach head follow neighbors with 2 connections
   // and keep track as all those nodes need to go
@@ -240,89 +239,5 @@ function removeDeadEnds(graph) {
   // filter out the nodes to be removed
   graph.nodes = graph.nodes.filter(n => !toBeRemoved.includes(n))
   graph.edges = graph.edges.filter(s => !toBeRemoved.includes(s.start) && !toBeRemoved.includes(s.end))
-
   return graph
-}
-
-
-function findAllClosedShapes(g) {
-  let shapes = []
-  let toCheck = g.nodes
-    .filter(n => n.connections >= 3)
-    .map(n => sortNodesClockwise(n, n.neighbors))
-
-  // let index = 0
-  // let start = toCheck[index]
-  // let step = toCheck[index].neighbors.reverse()[1]
-  // detectShape(start.node, step.node, shapes)
-
-  while (toCheck.length > 0) {
-    let start = toCheck.pop()
-    start.neighbors.reverse() // reverse to pop, still in clockwise order
-
-    while (start.neighbors.length > 0) {
-      let step = start.neighbors.pop()
-      print(step)
-      detectShape(start.node, step.node, step.a, shapes)
-    }
-  }
-  return shapes
-}
-
-function detectShape(start, step, angle, shapes) {
-  let verts = []
-  let visited = []
-  let current = start
-  let next = true
-  let stepAngle = angle
-  verts.push(start.pos)
-
-  while (next) {
-    if (visited.includes(step)) {
-      print("already been here!")
-      isDetecting = false
-      return
-    } else {
-      visited.push(step)
-    }
-    if (step.connections == 2) {
-      verts.push(step.pos)
-      let nextStep = step.getOtherNeighbors(current)[0]
-      current = step
-      step = nextStep
-    } else {
-      verts.push(step.pos)
-      let neighbors = step.getOtherNeighbors(current)
-      let sorted = sortNodesClockwise(step, neighbors)
-      print(sorted, stepAngle)
-      let options = sorted.neighbors
-        .filter(n => n.angle > stepAngle)
-        .sort((n1, n2) => n1.a < n2.a ? -1 : 1)
-      print(options)
-      if(options.length == 0){
-        print("options to sort",sorted)
-        options = sorted.neighbors.reverse()
-      }
-      if(options.length == 0){
-        break
-      }
-      current = step
-      step = options[0].node
-      // zero step angle fucks up the clockwise ordering, therefor keep current step angle
-      stepAngle = options[0].angle == 0 ? stepAngle : options[0].angle
-
-
-      // current = step
-      // step = nextSteps[0].node
-    }
-    if (step == start) {
-      // find out if the shape found already exists, if not push it
-      let shape = new Shape(verts)
-      let duplicates = shapes.filter(s => s.hasSameCenter(shape))
-      if (duplicates.length == 0) {
-        shapes.push(shape)
-      }
-      return
-    }
-  }
 }
