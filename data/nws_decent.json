@@ -4,7 +4,7 @@
   "niceseed" : 140915284204735020,
   "seed": 590284757792426100,
   "hasRiver": true,
-  "iterations": 11,
+  "iterations": 28,
   "iterations_CoT": 50,
   "centerMargin": 450,
   "numberOfSeeds": [

@@ -1,6 +1,6 @@
 class River {
     nodes = []
-    segments = []
+    edges = []
     poly = []
     zone = []
     it = 0
@@ -26,14 +26,14 @@ class River {
 
     generate() {
         this.nodes = []
-        this.segments = []
+        this.edges = []
         this.poly = []
         this.zone = []
         this.spawnPoints = 1
         this.it = 0
         this.outOfBound = false
         this.qtNodes.clear()
-        this.qtSegments.clear()
+        this.qtEdges.clear()
 
         for (let i = 0; i < this.spawnPoints; i++) {
             let margin = 50
@@ -210,7 +210,7 @@ class River {
             circle(n.pos.x, n.pos.y, 3)
             // n.display()
         })
-        this.segments.forEach(s => {
+        this.edges.forEach(s => {
             strokeWeight(1)
             stroke(0, 0, 255)
             line(s.start.x, s.start.y, s.end.x, s.end.y);

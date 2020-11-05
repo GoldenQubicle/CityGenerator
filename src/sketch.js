@@ -21,8 +21,8 @@ function setup() {
 
   generate()
   let graph = { nodes: network.nodes, edges: network.edges }
-  let t = removeDeadEnds(graph)
-  mnw = createMetaNetworkFromGraph(t)
+  graph = removeDeadEnds(graph)
+  mnw = createMetaNetworkFromGraph(graph)
   shapes = detectCyclesInMetaNetwork(mnw)
   
   // soo interesting issue;
@@ -34,7 +34,7 @@ function setup() {
 
   shapes = shapes.filter(s => {
     let inside = false
-    for (mn of mnw.metaNodes) {
+    for (mn of graph.nodes) {
       if (geometric.pointInPolygon(mn.asPoint(), s.vertices)){
         inside = true
         break
@@ -43,8 +43,8 @@ function setup() {
     return !inside
   })
 
-  // finally also need to account for possible duplicate shapes
-  // which are the result of a closed loop, i.e. a single edge wherein start & end are the same node
+  // // finally also need to account for possible duplicate shapes
+  // // which are the result of a closed loop, i.e. a single edge wherein start & end are the same node
   for(group of groupBy(shapes, s => s.centerBB.x + s.centerBB.y)){
     if(group[1].length == 2){
       shapes.splice(shapes.indexOf(group[1][0]), 1)

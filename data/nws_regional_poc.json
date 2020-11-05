@@ -9,7 +9,7 @@
     ],
     "showCurves": false,
     "centerMargin": 50,
-    "iterations": 75,
+    "iterations": 50,
     "maxNodeSize": 5500,
     "numberOfSeeds": [
         2,
