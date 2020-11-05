@@ -73,7 +73,7 @@ function createMetaNetworkFromGraph(graph) {
         metaNodes,
         metaEdges,
         display: function () {
-            this.metaEdges.forEach(e => e.display('orange'))
+            this.metaEdges.forEach(e => e.display('white'))
             this.metaNodes.forEach(n => n.display())
         }
     }
@@ -123,7 +123,7 @@ function detectCyclesForMetaEdge(edge, foundPath) {
     let nextnn = getOtherMetaNeighbors(current, edgesExcluded)
     //insert at front of queue
     theQueue.unshift(...nextnn)
-
+    // print("BFS for edge ", edge.id)
     while (foundPaths != edge.shapes && current != undefined) {
         if (current.node != edge.end) {
             // print("current edge:", current.edge.id, current.path)
@@ -135,7 +135,7 @@ function detectCyclesForMetaEdge(edge, foundPath) {
             theQueue.unshift(...nextnn)
             //debug info
             // nextnn.forEach(m => print("enqueud edge", m.edge.id))
-            // print(theQueue)
+            // print("found ", foundPaths, "queue ", theQueue.length)
             let edgeIds = theQueue.map(c => c.edge.id)
             // print("queue:", edgeIds)
             // pop the end of the queue

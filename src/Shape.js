@@ -21,7 +21,7 @@ class Shape {
     display() {
 
         this.drawShape()
-        // this.drawCenter()
+        this.drawCenter()
         // this.drawBoundingBox()
 
     }
@@ -39,7 +39,7 @@ class Shape {
 
     drawCenter() {
         fill('blue')
-        circle(this.centerBB.x, this.centerBB.y, 1)
+        circle(this.centerBB.x, this.centerBB.y, 3)
         // let centroid = geometric.polygonCentroid(this.vertices)
         // fill('red')
         // circle(centroid[0], centroid[1], 1)

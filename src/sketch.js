@@ -18,13 +18,40 @@ function setup() {
   responseCurves.initialize(width, height)
 
   // print(responseCurves)
-  
+
   generate()
-  let t = removeDeadEnds({nodes: network.nodes, edges: network.edges})
+  let graph = { nodes: network.nodes, edges: network.edges }
+  let t = removeDeadEnds(graph)
   mnw = createMetaNetworkFromGraph(t)
   shapes = detectCyclesInMetaNetwork(mnw)
+  
+  // soo interesting issue;
+  // there's a situation wherein a metaEdge is marked as belonging to 2 shapes
+  // and while this is technically correct, the underlying network topology can be such
+  // that one of shapes found is not the smallest possible
+  // hence we filter out by checking if any of the meta nodes are within the shape
+  // and if yes, it means the shape is too large and, while technically correct, not desirable for our purpose
 
+  shapes = shapes.filter(s => {
+    let inside = false
+    for (mn of mnw.metaNodes) {
+      if (geometric.pointInPolygon(mn.asPoint(), s.vertices)){
+        inside = true
+        break
+      }
+    }    
+    return !inside
+  })
+
+  // finally also need to account for possible duplicate shapes
+  // which are the result of a closed loop, i.e. a single edge wherein start & end are the same node
+  for(group of groupBy(shapes, s => s.centerBB.x + s.centerBB.y)){
+    if(group[1].length == 2){
+      shapes.splice(shapes.indexOf(group[1][0]), 1)
+    }
+  }  
 }
+
 
 function generate() {
   var ticks = ((new Date().getTime() * 10000) + 621355968000000000);
@@ -46,13 +73,8 @@ function generate() {
 function draw() {
   background(128)
   river.display()
-  network.display({showNodes: true})
-  // mnw.display()
-  // let selectedEdge = 56
-  // mnw.metaEdges[selectedEdge].display('purple')
-  // let p = mnw.metaEdges[selectedEdge].start.pos
-  // circle(p.x, p.y, 15)
-  // print(mnw.metaEdges[selectedEdge])
+  network.display({ showNodes: true })
+
   if (networkSettings.showCurves) {
     responseCurves.display()
   }
@@ -65,9 +87,16 @@ function draw() {
     }
   })
 
-  // shapes.forEach(s => s.display())
+  mnw.display()
+  // let selectedEdge = 56
+  // mnw.metaEdges[selectedEdge].display('purple')
+  // let p = mnw.metaEdges[selectedEdge].start.pos
+  // circle(p.x, p.y, 15)
+  // print(mnw.metaEdges[selectedEdge])
+
+  shapes.forEach(s => s.display())
   // network.stats()   
-  
+
   noLoop()
 }
 
