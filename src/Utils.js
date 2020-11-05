@@ -20,6 +20,14 @@ function sortNodesClockwise(current, nodes) {
   return { node: current, neighbors: sorted }
 }
 
+function QuadTreeSegmentFromNodes(start, end){
+    let width = Math.abs(start.pos.x - end.pos.x)
+    let height = Math.abs(start.pos.y - end.pos.y)
+    let x = start.pos.x < end.pos.x ? start.pos.x : end.pos.x
+    let y = start.pos.y < end.pos.y ? start.pos.y : end.pos.y
+    return { x: x, y: y, width: width, height: height}
+}
+
 function getAngle(origin, node) {
   let angle = createVector(0.000001, 0).angleBetween(p5.Vector.sub(node.pos, origin.pos))
   angle += radians(90)

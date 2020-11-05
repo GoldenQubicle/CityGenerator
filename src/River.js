@@ -17,7 +17,7 @@ class River {
             height: height,
             maxElements: this.qtMax
         })
-        this.qtSegments = new Quadtree({
+        this.qtEdges = new Quadtree({
             width: width,
             height: height,
             maxElements: this.qtMax

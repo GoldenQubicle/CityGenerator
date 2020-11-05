@@ -20,7 +20,7 @@ function setup() {
   // print(responseCurves)
   
   generate()
-  let t = removeDeadEnds({nodes: network.nodes, edges: network.segments})
+  let t = removeDeadEnds({nodes: network.nodes, edges: network.edges})
   mnw = createMetaNetworkFromGraph(t)
   shapes = detectCyclesInMetaNetwork(mnw)
 
@@ -47,7 +47,7 @@ function draw() {
   background(128)
   river.display()
   network.display({showNodes: true})
-  mnw.display()
+  // mnw.display()
   // let selectedEdge = 56
   // mnw.metaEdges[selectedEdge].display('purple')
   // let p = mnw.metaEdges[selectedEdge].start.pos
@@ -65,8 +65,9 @@ function draw() {
     }
   })
 
-  shapes.forEach(s => s.display())
+  // shapes.forEach(s => s.display())
   // network.stats()   
+  
   noLoop()
 }
 

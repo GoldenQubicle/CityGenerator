@@ -10,17 +10,13 @@ function checkNewPosAndAdd(node, config, obj) {
   }
 
   pos = checkForWater(node, config)
-
-  // TODO; when merging back from ShapeSegment project
-  // the segment now handles add start & end as neighbors to each other
-  // meaning creating a new segment will fuck up the connections
-  // since this is only used to get the collider area, figure out another approach
-  let qts = new Segment(node, new Node(pos)).asQuadTreeObject()
-  let segments = obj.qtSegments.colliding(qts)
-  let newNode = checkIntersections(node, config, segments, pos)
+  
+  let qts =  QuadTreeSegmentFromNodes(node, new Node(pos))
+  let edges = obj.qtEdges.colliding(qts)
+  let newNode = checkIntersections(node, config, edges, pos)
 
   if (newNode != null) {
-    addSegment(node, newNode, obj)
+    addEdge(node, newNode, obj)
     return true
   } else {
     node.isActive = false
@@ -45,7 +41,7 @@ function placeBridge(pos, node, config, obj) {
   let newNode = new Node(pos)
   node.isBridge = true
   newNode.isBridge = true
-  addSegment(node, newNode, obj)
+  addEdge(node, newNode, obj)
   
 }
 
@@ -120,22 +116,22 @@ function determineShoreAngle(node, newPos, config) {
   }
 }
 
-function checkIntersections(node, config, segments, position) {
-  segments = segments.map(qts => qts.segment) // map quad tree objects to segment proper
-  if (segments.length > 0) {
+function checkIntersections(node, config, edges, position) {
+  edges = edges.map(qts => qts.edge) // map quad tree objects to segment proper
+  if (edges.length > 0) {
     let fit = false
     let attempts = 0
     while (!fit) {
       attempts++
-      for (s of segments) {
+      for (edge of edges) {
         //NOTE comment below is slightly outdated since we're no longer using actual segments here
         //line segments sharing nodes is counted as an intersection by geomtric
         //however, this is of course not an intersection proper.
         //hence else-if performs the actual check for intersection between lines which do not share a common node        
-        if ((s.start.pos.x == node.pos.x && s.start.pos.y == node.pos.y) ||
-          (s.end.pos.x == node.pos.x && s.end.pos.y == node.pos.y)) {
+        if ((edge.start.pos.x == node.pos.x && edge.start.pos.y == node.pos.y) ||
+          (edge.end.pos.x == node.pos.x && edge.end.pos.y == node.pos.y)) {
           fit = true
-        } else if (geometric.lineIntersectsLine(s.asLine(), [[node.pos.x, node.pos.y], [position.x, position.y]])) {
+        } else if (geometric.lineIntersectsLine(edge.asLine(), [[node.pos.x, node.pos.y], [position.x, position.y]])) {
           position = checkForWater(node, config)
           fit = false
           break
@@ -152,24 +148,24 @@ function checkIntersections(node, config, segments, position) {
   return new Node(position)
 }
 
-function addSegment(node, newNode, obj) {
+function addEdge(node, newNode, obj) {
   //TODO when mergin segment back, it handles adding 
   // start & end as neighbors to each other
-  node.addNeighbor(newNode)
-  newNode.addNeighbor(node)
+  // node.addNeighbor(newNode)
+  // newNode.addNeighbor(node)
 
-  node.updateNoC()
-  newNode.updateNoC()
+  // node.updateNoC()
+  // newNode.updateNoC()
 
-  let segment = new Segment(node, newNode)
+  let edge = new Edge(node, newNode)
 
   if(node.isBridge && newNode.isBridge){
-    obj.bridges.push(segment)
+    obj.bridges.push(edge)
   }
-  obj.segments.push(segment)
+  obj.edges.push(edge)
   obj.nodes.push(newNode)
 
-  obj.qtSegments.push(segment.asQuadTreeObject())
+  obj.qtEdges.push(edge.asQuadTreeObject())
   obj.qtNodes.push(newNode.asQuadTreeObject())
 }
 
@@ -191,18 +187,18 @@ function ReplaceWithNearestNodeInRadius(node, r) {
     }).sort((d1, d2) => d1.d - d2.d)[0]
   // print(near)
   if (near != undefined) {
-    // get quad tree segment
-    let result = network.qtSegments.find(function (qts) {
-      return qts.segment.containsNode(node)
+    // get quad tree edge
+    let result = network.qtEdges.find(function (qts) {
+      return qts.edge.containsNode(node)
     })[0]
 
-    let s = result.segment
-    s.replaceNode(node, near.n)
+    let edge = result.edge
+    edge.replaceNode(node, near.n)
 
-    // remove result from quad tree, and push the segment
-    // with replaced since its dimensions have changed
-    network.qtSegments.remove(result)
-    network.qtSegments.push(s.asQuadTreeObject())
+    // remove result from quad tree, and push the edge
+    // with replaced node since its dimensions have changed
+    network.qtEdges.remove(result)
+    network.qtEdges.push(edge.asQuadTreeObject())
 
     // remove redundant node
     network.nodes.splice(network.nodes.indexOf(node), 1)

@@ -3,7 +3,7 @@
   "hasRandomSeed": false,
   "seed": 478000213157004,
   "hasRiver": false,
-  "iterations": 50,
+  "iterations": 10,
   "iterations_CoT": 75,
   "centerMargin": 475,
   "numberOfSeeds": [

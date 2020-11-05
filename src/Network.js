@@ -1,6 +1,6 @@
 class Network {
     nodes = []
-    segments = []
+    edges = []
     rules = {}
     shapes = []
     bridges = []
@@ -19,7 +19,7 @@ class Network {
             height: height,
             maxElements: this.qtMax
         })
-        this.qtSegments = new Quadtree({
+        this.qtEdges = new Quadtree({
             width: width,
             height: height,
             maxElements: this.qtMax
@@ -29,18 +29,18 @@ class Network {
     generate() {
         this.it = 0
         this.nodes = []
-        this.segments = []
+        this.edges = []
         this.shapes = []
         this.bridges = []
         this.qtNodes.clear()
-        this.qtSegments.clear()
+        this.qtEdges.clear()
         this.size = []
         let seeds = random(networkSettings.numberOfSeeds[0], networkSettings.numberOfSeeds[1])
-        this.size.push({ nodes: this.nodes.length, segments: this.segments.length })
+        this.size.push({ nodes: this.nodes.length, segments: this.edges.length })
 
         networkRules[Spawn].execute(seeds)
 
-        this.size.push({ nodes: this.nodes.length, segments: this.segments.length })
+        this.size.push({ nodes: this.nodes.length, segments: this.edges.length })
 
         for (let i = 0; i < this.iterations; i++) {
             this.iterate()
@@ -50,7 +50,7 @@ class Network {
     iterate() {
         this.it++
         console.log("----------iteration " + this.it + "----------")
-        print("nodes:", this.nodes.length, "segments:", this.segments.length)
+        print("nodes:", this.nodes.length, "segments:", this.edges.length)
 
         networkSettings.Rules.forEach(rule => {
             this.nodes.forEach(n => {
@@ -62,7 +62,7 @@ class Network {
         // set rules for next iteration once all nodes have executed their rule
         this.nodes.forEach(n => n.setStatus())
         // track stats  
-        this.size.push({ nodes: this.nodes.length, segments: this.segments.length })
+        this.size.push({ nodes: this.nodes.length, segments: this.edges.length })
     }
 
     getConfig() {
@@ -258,7 +258,7 @@ class Network {
 
         // this.detectClosedShapes()
 
-        this.segments.forEach(l => l.display())
+        this.edges.forEach(l => l.display())
         this.nodes.forEach(n => {
             // textSize(5)
             // text(this.nodes.indexOf(n), n.pos.x, n.pos.y)
