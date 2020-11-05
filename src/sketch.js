@@ -4,7 +4,7 @@ let network
 let river
 let shapes = []
 function preload() {
-  networkSettings = loadJSON("data/nws_default.json")
+  networkSettings = loadJSON("data/nws_decent.json")
 }
 
 function setup() {
@@ -24,7 +24,7 @@ function setup() {
   graph = removeDeadEnds(graph)
   mnw = createMetaNetworkFromGraph(graph)
   shapes = detectCyclesInMetaNetwork(mnw)
-  
+
   // soo interesting issue;
   // there's a situation wherein a metaEdge is marked as belonging to 2 shapes
   // and while this is technically correct, the underlying network topology can be such
@@ -35,21 +35,21 @@ function setup() {
   shapes = shapes.filter(s => {
     let inside = false
     for (mn of graph.nodes) {
-      if (geometric.pointInPolygon(mn.asPoint(), s.vertices)){
+      if (geometric.pointInPolygon(mn.asPoint(), s.vertices)) {
         inside = true
         break
       }
-    }    
+    }
     return !inside
   })
 
   // // finally also need to account for possible duplicate shapes
   // // which are the result of a closed loop, i.e. a single edge wherein start & end are the same node
-  for(group of groupBy(shapes, s => s.centerBB.x + s.centerBB.y)){
-    if(group[1].length == 2){
+  for (group of groupBy(shapes, s => s.centerBB.x + s.centerBB.y)) {
+    if (group[1].length == 2) {
       shapes.splice(shapes.indexOf(group[1][0]), 1)
     }
-  }  
+  }
 }
 
 
@@ -87,7 +87,7 @@ function draw() {
     }
   })
 
-  mnw.display()
+  // mnw.display()
   // let selectedEdge = 56
   // mnw.metaEdges[selectedEdge].display('purple')
   // let p = mnw.metaEdges[selectedEdge].start.pos

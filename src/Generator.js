@@ -10,8 +10,8 @@ function checkNewPosAndAdd(node, config, obj) {
   }
 
   pos = checkForWater(node, config)
-  
-  let qts =  QuadTreeSegmentFromNodes(node, new Node(pos))
+
+  let qts = QuadTreeSegmentFromNodes(node, new Node(pos))
   let edges = obj.qtEdges.colliding(qts)
   let newNode = checkIntersections(node, config, edges, pos)
 
@@ -20,7 +20,7 @@ function checkNewPosAndAdd(node, config, obj) {
     return true
   } else {
     node.isActive = false
-    node.updateNoC()
+    node.setStatus()
     return false
   }
 }
@@ -37,12 +37,12 @@ function placeBridge(pos, node, config, obj) {
       inWater = false
     }
   }
-  
+
   let newNode = new Node(pos)
   node.isBridge = true
   newNode.isBridge = true
   addEdge(node, newNode, obj)
-  
+
 }
 
 function checkForWater(node, config) {
@@ -52,7 +52,7 @@ function checkForWater(node, config) {
   // check if position is inside river zone poly, and if so determine possible course of action
   // all possibilities rely on overriding config.getAngle to generate a suitable new position
   if (geometric.pointInPolygon([pos.x, pos.y], river.zone)) {
-    inWater = true  
+    inWater = true
     if (config.rule == "rlr") {
       config.getAngle = function (n, c) {
         return c.angle + radians(180)
@@ -159,7 +159,7 @@ function addEdge(node, newNode, obj) {
 
   let edge = new Edge(node, newNode)
 
-  if(node.isBridge && newNode.isBridge){
+  if (node.isBridge && newNode.isBridge) {
     obj.bridges.push(edge)
   }
   obj.edges.push(edge)
@@ -187,17 +187,33 @@ function ReplaceWithNearestNodeInRadius(node, r) {
     }).sort((d1, d2) => d1.d - d2.d)[0]
   // print(near)
   if (near != undefined) {
-    // get quad tree edge
-    let result = network.qtEdges.find(function (qts) {
+    // get quad tree edge for the node, we need it later on
+    let qtEdge = network.qtEdges.find(function (qts) {
       return qts.edge.containsNode(node)
     })[0]
 
-    let edge = result.edge
+    //first make sure the node & nearest to it to not happen to share a neighbor
+    //otherwise it creates faulty topology. Remove the node & edge if so
+    var shared = node.neighbors.filter(n => near.n.neighbors.includes(n))
+    if (shared.length > 0) {
+      // get the other node for the edge node belongs to, and remove it as neighbor
+      let n = qtEdge.edge.getOther(node)
+      n.delNeighbor(node)
+      // cleanup node & edge it belonged to from network & quadtree
+      network.qtEdges.remove(qtEdge)
+      network.edges.splice(network.edges.indexOf(qtEdge.edge), 1)      
+      network.nodes.splice(network.nodes.indexOf(node), 1)      
+      let qtn = network.qtNodes.where({ node: node })[0]
+      network.qtNodes.remove(qtn)
+      return true // technically not replaced but whatever
+    }
+
+    let edge = qtEdge.edge
     edge.replaceNode(node, near.n)
 
     // remove result from quad tree, and push the edge
     // with replaced node since its dimensions have changed
-    network.qtEdges.remove(result)
+    network.qtEdges.remove(qtEdge)
     network.qtEdges.push(edge.asQuadTreeObject())
 
     // remove redundant node
