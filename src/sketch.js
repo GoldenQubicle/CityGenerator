@@ -23,8 +23,8 @@ function setup() {
   generate()
   let graph = { nodes: network.nodes, edges: network.edges }
   trimmedGraph = removeDeadEnds(graph)
-  // mnw = createMetaNetworkFromGraph(trimmedGraph)
-  // shapes = detectCyclesInMetaNetwork(mnw, graph.nodes)
+  mnw = createMetaNetworkFromGraph(trimmedGraph)
+  shapes = detectCyclesInMetaNetwork(mnw, graph.nodes)
 
   // soo interesting issue;
   // there's a situation wherein a metaEdge is marked as belonging to 2 shapes
@@ -95,7 +95,7 @@ function draw() {
   })
 
   // mnw.display()
-  // let selectedEdge = 199
+  // let selectedEdge = 214
   // mnw.metaEdges[selectedEdge].display('purple')
   // mnw.metaEdges[selectedEdge].verts.forEach(v =>{
   //   noFill()
@@ -105,7 +105,7 @@ function draw() {
   // // circle(p.x, p.y, 15)
   // print(mnw.metaEdges[selectedEdge])
 
-  // shapes.forEach(s => s.display())
+  shapes.forEach(s => s.display())
   // network.stats()   
 
   noLoop()

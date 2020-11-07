@@ -34,7 +34,8 @@ function createMetaNetworkFromGraph(graph) {
     // however as the key is based on x & y values, some combinations could be the same, hence subtract & add 'magic' values
     // recall every start of an edge already is a new meta node
     // thus for every pair of edges, swap the dead-ends for the start of the other and take the 1st edge
-    let edgePairs = groupBy(metaEdges, e => (abs(e.midPoint.x) + 7 / abs(e.midPoint.y) - 7 + e.verts.length).toFixed(5))
+    let edgePairs = groupBy(metaEdges, e => (abs(e.midPoint.x) + 7 / abs(e.midPoint.y) - 7 + e.verts.length + e.verts.reduce((acc, v) => acc+=v.id, 0)).toFixed(5))
+    // let edgePairs = groupBy(metaEdges, e => e.verts.reduce((acc, v) => acc+=v.id, 0))
     metaEdges = []
     edgePairs.forEach(pair => {
         pair[0].start.replaceNeighbor(pair[0].end, pair[1].start)
@@ -44,12 +45,12 @@ function createMetaNetworkFromGraph(graph) {
         pair[0].end.metaNeighbors.push({ node: pair[0].start, edge: pair[0] })
         metaEdges.push(pair[0])
         if (pair.length > 2) {
-            // pair[2].start.replaceNeighbor(pair[2].end, pair[3].start)
-            // pair[3].start.replaceNeighbor(pair[3].end, pair[2].start)
-            // pair[2].end = pair[3].start
-            // pair[2].start.metaNeighbors.push({ node: pair[2].end, edge: pair[2] })
-            // pair[2].end.metaNeighbors.push({ node: pair[2].start, edge: pair[2] })
-            // metaEdges.push(pair[2])
+            pair[2].start.replaceNeighbor(pair[2].end, pair[3].start)
+            pair[3].start.replaceNeighbor(pair[3].end, pair[2].start)
+            pair[2].end = pair[3].start
+            pair[2].start.metaNeighbors.push({ node: pair[2].end, edge: pair[2] })
+            pair[2].end.metaNeighbors.push({ node: pair[2].start, edge: pair[2] })
+            metaEdges.push(pair[2])
         }
     })
     print(edgePairs)
