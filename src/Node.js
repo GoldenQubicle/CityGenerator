@@ -91,7 +91,7 @@ class Node {
         // circle(this.pos.x, this.pos.y, 2)
         noStroke()
         fill('white')
-        text(this.id, this.pos.x, this.pos.y)
+        // text(this.id, this.pos.x, this.pos.y)
         if (this.connections == 1) {
             if (this.isActive)
                 fill('yellow')

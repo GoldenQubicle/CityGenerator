@@ -8,6 +8,7 @@ function createMetaNetworkFromGraph(graph) {
     nodes.forEach(node => {
         let start = new Node(node.pos)
         start.metaNeighbors = []
+        start.id = metaNodes.length
         metaNodes.push(start)
         node.neighbors.forEach(nn => {
             let verts = []

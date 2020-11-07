@@ -23,8 +23,8 @@ function setup() {
   generate()
   let graph = { nodes: network.nodes, edges: network.edges }
   trimmedGraph = removeDeadEnds(graph)
-  mnw = createMetaNetworkFromGraph(trimmedGraph)
-  shapes = detectCyclesInMetaNetwork(mnw, graph.nodes)
+  // mnw = createMetaNetworkFromGraph(trimmedGraph)
+  // shapes = detectCyclesInMetaNetwork(mnw, graph.nodes)
 
   // soo interesting issue;
   // there's a situation wherein a metaEdge is marked as belonging to 2 shapes
@@ -78,8 +78,9 @@ function draw() {
   translate(512, 512)
   river.display()
   network.display({ showNodes: true })
+
+  trimmedGraph.edges.forEach(e => e.display('white'))
   // trimmedGraph.nodes.forEach(n => n.display())
-  // trimmedGraph.edges.forEach(e => e.display())
 
   if (networkSettings.showCurves) {
     responseCurves.display()
