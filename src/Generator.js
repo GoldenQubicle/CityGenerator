@@ -149,19 +149,12 @@ function checkIntersections(node, config, edges, position) {
 }
 
 function addEdge(node, newNode, obj) {
-  //TODO when mergin segment back, it handles adding 
-  // start & end as neighbors to each other
-  // node.addNeighbor(newNode)
-  // newNode.addNeighbor(node)
-
-  // node.updateNoC()
-  // newNode.updateNoC()
-
   let edge = new Edge(node, newNode)
 
   if (node.isBridge && newNode.isBridge) {
     obj.bridges.push(edge)
   }
+  newNode.id = obj.nodes.length
   obj.edges.push(edge)
   obj.nodes.push(newNode)
 
@@ -201,8 +194,8 @@ function ReplaceWithNearestNodeInRadius(node, r) {
       n.delNeighbor(node)
       // cleanup node & edge it belonged to from network & quadtree
       network.qtEdges.remove(qtEdge)
-      network.edges.splice(network.edges.indexOf(qtEdge.edge), 1)      
-      network.nodes.splice(network.nodes.indexOf(node), 1)      
+      network.edges.splice(network.edges.indexOf(qtEdge.edge), 1)
+      network.nodes.splice(network.nodes.indexOf(node), 1)
       let qtn = network.qtNodes.where({ node: node })[0]
       network.qtNodes.remove(qtn)
       return true // technically not replaced but whatever

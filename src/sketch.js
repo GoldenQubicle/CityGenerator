@@ -93,16 +93,16 @@ function draw() {
     }
   })
 
-  mnw.display()
-  let selectedEdge = 199
-  mnw.metaEdges[selectedEdge].display('purple')
-  mnw.metaEdges[selectedEdge].verts.forEach(v =>{
-    noFill()
-    circle(v.pos.x, v.pos.y, 10)
-  } )
-  let p = mnw.metaEdges[selectedEdge].start.pos
-  // circle(p.x, p.y, 15)
-  print(mnw.metaEdges[selectedEdge])
+  // mnw.display()
+  // let selectedEdge = 199
+  // mnw.metaEdges[selectedEdge].display('purple')
+  // mnw.metaEdges[selectedEdge].verts.forEach(v =>{
+  //   noFill()
+  //   circle(v.pos.x, v.pos.y, 10)
+  // } )
+  // let p = mnw.metaEdges[selectedEdge].start.pos
+  // // circle(p.x, p.y, 15)
+  // print(mnw.metaEdges[selectedEdge])
 
   // shapes.forEach(s => s.display())
   // network.stats()   

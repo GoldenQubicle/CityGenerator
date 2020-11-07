@@ -48,6 +48,7 @@ let SpawnNodesRule = {
             }
             let pos = checkForWater("", config)
             let newNode = new Node(pos);
+            newNode.id = network.nodes.length
             network.nodes.push(newNode)
             network.qtNodes.push(newNode.asQuadTreeObject())
         }
