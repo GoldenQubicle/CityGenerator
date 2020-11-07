@@ -223,7 +223,7 @@ class River {
         // endShape()
 
         beginShape()
-        fill('blue')
+        fill('#253854')
         this.poly.forEach(p => vertex(p[0], p[1]))
         endShape()
     }

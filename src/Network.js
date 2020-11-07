@@ -50,7 +50,7 @@ class Network {
     iterate() {
         this.it++
         console.log("----------iteration " + this.it + "----------")
-        print("nodes:", this.nodes.length, "segments:", this.edges.length)
+        print("nodes:", this.nodes.length, "edges:", this.edges.length)
 
         networkSettings.Rules.forEach(rule => {
             this.nodes.forEach(n => {
@@ -112,102 +112,6 @@ class Network {
                 n.pos.dist(node.pos) < radi)
     }
 
-
-    detectClosedShapes() {
-        // since each iteration can produce new shapes, clear the array
-        this.shapes = []
-
-        // go over all 'intersection' nodes.
-        let nc = this.nodes.filter(n => n.connections >= 3)
-        if (nc.length > 0) {
-            nc.forEach(n => {
-                let startNode = n
-                startNode.neighbors.forEach(nn => {
-                    let visited = []
-                    visited.push(startNode)
-                    this.traceShape(nn, visited)
-
-                    // helper stuff to visualize the path followed
-                    visited.forEach(nv => {
-                        let i = visited.indexOf(nv)
-                        let a = 255 / visited.length
-                        fill(255, i * a)
-                        // circle(nv.pos.x, nv.pos.y, 4)
-                        // text(i, nv.pos.x, nv.pos.y)
-                    })
-                    fill('black')
-                    // circle(startNode.pos.x, startNode.pos.y, 4)
-                })
-            })
-        }
-        this.shapes.forEach(shape => {
-            shape.display()
-        })
-    }
-
-    traceShape(currentNode, visited) {
-        // Note this is a lazy hack method and the shape found is highly unlikely to contain the startNode
-        // i.e. it just stops as soon as it finds ANY closed shape instead of
-        // backtracking and trying to reach the startNode.
-        if (currentNode == undefined) {
-            // if the currentNode is undefined, it means it encountered
-            // a situation wherin no more unvisited nodes were found, i.e. a closed shape is found.
-            // Since currentNode is undefined grab the last visited node because
-            // by definition one of its neighbors must close the shape.
-            // so grab all indices in order to slice visited array accordingly
-            // also note, only connection == 2 can pass an undefined node hence the number of neighbors is known
-            let lastNode = visited[visited.length - 1]
-            let i0 = visited.indexOf(lastNode)
-            let i1 = visited.indexOf(lastNode.neighbors[0])
-            let i2 = visited.indexOf(lastNode.neighbors[1])
-            // what is start index of the shape, and by how many does visited needs to be sliced?
-            let indices = [i0, i1, i2].sort((i1, i2) => i1 - i2)
-            let start = indices[0]
-            let number = indices[indices.length - 1] - start
-            let verts = visited.splice(start, number + 1).map(n => n.pos)
-            // construct a new shape
-
-            if (verts.length > 2) {
-                let shape = new Shape(verts)
-                // because this is a lazy hack method it finds many, many duplicats
-                // so need to filter this out by checking centroid and overlap BB boundaries
-                let duplicates = this.shapes.filter(s => s.hasSameCenter(shape) || s.hasOverlap(shape))
-                // if none of the existing shapes are found to be equal, push it
-                if (duplicates.length == 0) {
-                    this.shapes.push(shape)
-                }
-            }
-            return
-        }
-
-        // can't go anywhere but forward so filter to neighbors
-        // to find the one which isn't visited yet
-        if (currentNode.connections == 2) {
-            visited.push(currentNode)
-            let nextNode = currentNode.neighbors
-                .filter(n => !visited.includes(n))[0]
-            this.traceShape(nextNode, visited)
-        }
-
-        // need to decided which neighbor to go with, which is done 
-        // based on distance. First filter out neighbors to unvisited
-        // then determine which neighbor is closest distance to startNode 
-        if (currentNode.connections >= 3) {
-            let nextNode = currentNode.neighbors
-                .filter(n => !visited.includes(n))
-                .map(n => {
-                    let d = p5.Vector.dist(visited[0].pos, n.pos)
-                    return { d: d, n: n }
-                }).sort((n1, n2) => n1.d - n2.d)[0]
-            // not sure why but sometimes this can be undefined..
-            // deffo a bug but meh, guard claus works just fine
-            if (nextNode != undefined) {
-                visited.push(currentNode)
-                this.traceShape(nextNode.n, visited)
-            }
-        }
-    }
-
     traceThroughRoutes() {
         if (this.nodes.length > 0) {
             let pickedRoutes = []
@@ -254,11 +158,7 @@ class Network {
             // text(i, n.pos.x, n.pos.y)                       
         })
 
-        // this.traceThroughRoutes()
-
-        // this.detectClosedShapes()
-
-        this.edges.forEach(l => l.display())
+        this.edges.forEach(l => l.display('darkgray'))
         this.nodes.forEach(n => {
             // textSize(5)
             // text(this.nodes.indexOf(n), n.pos.x, n.pos.y)
@@ -267,11 +167,11 @@ class Network {
             }
             // NetworkRules[n.status].debugDraw(n)
         })
-        // this.bridges.forEach(b =>{
-        //     stroke('black')
-        //     strokeWeight(3)
-        //     line(b.start.pos.x, b.start.pos.y, b.end.pos.x, b.end.pos.y)
-        // })
+        this.bridges.forEach(b =>{
+            stroke('black')
+            strokeWeight(3)
+            line(b.start.pos.x, b.start.pos.y, b.end.pos.x, b.end.pos.y)
+        })
     }
 
     stats() {

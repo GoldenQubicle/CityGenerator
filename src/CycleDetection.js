@@ -1,3 +1,47 @@
+function detectClosedShapes(graph) {
+    let trimmedGraph = removeDeadEnds(graph)
+    trimmedGraph.display = function () {
+        this.edges.forEach(e => e.display('lightblue'))
+        // this.nodes.forEach(n => n.display())
+    }
+    print("trimmed graph")
+    print("nodes:", trimmedGraph.nodes.length, "edges:", trimmedGraph.edges.length)
+
+    let mnw = createMetaNetworkFromGraph(trimmedGraph)
+    print("meta network")
+    print("nodes:", mnw.metaNodes.length, "edges:", mnw.metaEdges.length)
+    let shapes = detectCyclesInMetaNetwork(mnw, graph.nodes)
+    
+    // soo interesting issue;
+    // there's a situation wherein a metaEdge is marked as belonging to 2 shapes
+    // and while this is technically correct, the underlying network topology can be such
+    // that one of shapes found is not the smallest possible
+    // hence we filter out by checking if any of the meta nodes are within the shape
+    // and if yes, it means the shape is too large and, while technically correct, not desirable for our purpose
+
+    // TODO move this into detection proper as otherwise shapes will be missed
+    // since the algo already has found 2 shapes, however, only afterwards is it declared invalid
+
+    // shapes = shapes.filter(s => {
+    //     let inside = false
+    //     for (mn of graph.nodes) {
+    //         if (geometric.pointInPolygon(mn.asPoint(), s.polygon)) {
+    //             inside = true
+    //             break
+    //         }
+    //     }
+    //     return !inside
+    // })
+
+    // finally also need to account for possible duplicate shapes  
+    let groups = groupBy(shapes, s => s.polygon.reduce((acc, v) => acc += (v[0] + v[1], 0)))
+    shapes = []
+    for (group of groups) {
+        shapes.push(group[1][0])
+    }
+    return { trimmedGraph: trimmedGraph, metaNetwork: mnw, shapes: shapes }
+}
+
 function createMetaNetworkFromGraph(graph) {
     let metaEdges = []
     let metaNodes = []
@@ -34,7 +78,7 @@ function createMetaNetworkFromGraph(graph) {
     // the unique key is quite elaborate to combat edge cases (mostly in a grid) wherein the x & y yield to same outcome
     // recall every start of an edge already is a new meta node
     // thus for every pair of edges, swap the dead-ends for the start of the other and take the 1st edge
-    let edgePairs = groupBy(metaEdges, e => (abs(e.midPoint.x) + 7 / abs(e.midPoint.y) - 7 + e.verts.length + e.verts.reduce((acc, v) => acc+=v.id, 0)).toFixed(5))
+    let edgePairs = groupBy(metaEdges, e => (abs(e.midPoint.x) + 7 / abs(e.midPoint.y) - 7 + e.verts.length + e.verts.reduce((acc, v) => acc += v.id, 0)).toFixed(5))
     metaEdges = []
     edgePairs.forEach(pair => {
         pair[0].start.replaceNeighbor(pair[0].end, pair[1].start)
@@ -42,8 +86,8 @@ function createMetaNetworkFromGraph(graph) {
         pair[0].end = pair[1].start
         pair[0].start.metaNeighbors.push({ node: pair[0].end, edge: pair[0] })
         pair[0].end.metaNeighbors.push({ node: pair[0].start, edge: pair[0] })
-        metaEdges.push(pair[0])        
-    })    
+        metaEdges.push(pair[0])
+    })
 
     //by definition an edge can be part of 2 shapes at most,
     //or just 1 shape if at the outside of the graph
@@ -76,10 +120,23 @@ function createMetaNetworkFromGraph(graph) {
         display: function () {
             this.metaEdges.forEach(e => e.display('white'))
             this.metaNodes.forEach(n => n.display())
+        },
+        selectEdge: function (selectedEdge) {
+            if(selectedEdge < 0){
+                return
+            }
+            this.metaEdges[selectedEdge].display('purple')
+            this.metaEdges[selectedEdge].verts.forEach(v => {
+                noFill()
+                circle(v.pos.x, v.pos.y, 5)
+            })
+            let p = this.metaEdges[selectedEdge].start.pos
+            stroke('green')
+            circle(p.x, p.y, 10)
+            print(this.metaEdges[selectedEdge])
         }
     }
 }
-
 
 function detectCyclesInMetaNetwork(mnw, nodes) {
     // some terminology; 
@@ -91,22 +148,21 @@ function detectCyclesInMetaNetwork(mnw, nodes) {
     let foundShapes = mnw.metaEdges.map(me => [])
 
     mnw.metaEdges.forEach(me => {
-        let stop = false
-        // only do cycle detection if not all path shapes have been found for the current edge
-        // pass down any path shape already found in order to exclude it from search
+        //NOTE below is not correct yet and finds about 95% of shapes
+        
         if (foundShapes[me.id].length < me.shapes) {
             // print("outer while for edge ", me.id)
             let cycles = detectCyclesForMetaEdge(me, foundCycles[me.id])
             cycles.forEach(cycle => {
                 let shape = createShapeFromPathNodes(pathEdgesToNodes(cycle))
-                let inside = mnw.metaNodes.filter(n => geometric.pointInPolygon(n.asPoint(), shape.vertices))
+                let inside = mnw.metaNodes.filter(n => geometric.pointInPolygon(n.asPoint(), shape.polygon))
 
                 if (inside.length == 0) {
                     foundShapes[me.id].push(shape)
                     cycle.forEach(e => foundShapes[e.id].push(shape))
                 }
                 foundCycles[me.id].push(cycle)
-                cycle.forEach(e => foundCycles[e.id].push(cycle))               
+                cycle.forEach(e => foundCycles[e.id].push(cycle))
             })
             // print(me.id, " ", foundShapes[me.id].length)
             // if(foundShapes[me.id] == me.shapes || foundCycles[me.id].length >= 3){

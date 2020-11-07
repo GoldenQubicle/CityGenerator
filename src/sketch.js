@@ -5,7 +5,7 @@ let trimmedGraph
 let river
 let shapes = []
 function preload() {
-  networkSettings = loadJSON("data/nws_grid.json")
+  networkSettings = loadJSON("data/nws_decent.json")
 }
 
 function setup() {
@@ -21,38 +21,15 @@ function setup() {
   // print(responseCurves)
 
   generate()
+
   let graph = { nodes: network.nodes, edges: network.edges }
-  trimmedGraph = removeDeadEnds(graph)
-  mnw = createMetaNetworkFromGraph(trimmedGraph)
-  shapes = detectCyclesInMetaNetwork(mnw, graph.nodes)
+  let result = detectClosedShapes(graph)
+  trimmedGraph = result.trimmedGraph
+  mnw = result.metaNetwork
+  shapes = result.shapes
 
-  // soo interesting issue;
-  // there's a situation wherein a metaEdge is marked as belonging to 2 shapes
-  // and while this is technically correct, the underlying network topology can be such
-  // that one of shapes found is not the smallest possible
-  // hence we filter out by checking if any of the meta nodes are within the shape
-  // and if yes, it means the shape is too large and, while technically correct, not desirable for our purpose
-  // TODO move this into detection proper as otherwise shapes will be missed
-  // since the algo already has found 2 shapes, however, only afterwards is it declared invalid
-  
-  // let overlap = shapes.map(shape => shapes.filter(s => shape.hasOverlap(s)))
-  // print(overlap)
-  // shapes = shapes.filter(s => {
-  //   let inside = false
-  //   for (mn of graph.nodes) {
-  //     if (geometric.pointInPolygon(mn.asPoint(), s.vertices)) {
-  //       inside = true
-  //       break
-  //     }
-  //   }
-  //   return !inside
-  // })
-
-  // finally also need to account for possible duplicate shapes  
-  let groups = groupBy(shapes, s => s.vertices.reduce((acc, v) => acc+= (v[0]+v[1], 0)))
-  shapes = []
-  for (group of groups) {    
-    shapes.push(group[1][0])
+  if(networkSettings.hasRiver){
+    shapes = shapes.filter(s => !geometric.polygonIntersectsPolygon(s.polygon, river.poly))
   }
 }
 
@@ -75,42 +52,24 @@ function generate() {
 }
 
 function draw() {
-  background(128)
-  scale(.5)
-  translate(512, 512)
-  river.display()
-  
-  shapes.forEach(s => s.display())
-  network.display({ showNodes: true })
+  background('#2d5425')
+  // scale(.5)
+  // translate(512, 512)
 
-  trimmedGraph.edges.forEach(e => e.display('lightblue'))
-  // trimmedGraph.nodes.forEach(n => n.display())
+  river.display()
+  network.display({ showNodes: false })
+  shapes.forEach(s => s.display())
+  network.traceThroughRoutes()  
+  trimmedGraph.display()
+  // mnw.display()
+  // mnw.selectEdge(-75)  
 
   if (networkSettings.showCurves) {
     responseCurves.display()
   }
 
   // networkRules[NextToIntersection].debugDraw()
-
-  network.nodes.forEach(n => {
-    if (n.status == ActiveEnd) {
-      // networkRules[n.status].debugDraw(n)
-    }
-  })
-
-  mnw.display()
-  let selectedEdge = 151
-  mnw.metaEdges[selectedEdge].display('purple')
-  mnw.metaEdges[selectedEdge].verts.forEach(v =>{
-    noFill()
-    circle(v.pos.x, v.pos.y, 10)
-  } )
-  // let p = mnw.metaEdges[selectedEdge].start.pos
-  // // circle(p.x, p.y, 15)
-  // print(mnw.metaEdges[selectedEdge])
-
   // network.stats()   
-
   noLoop()
 }
 

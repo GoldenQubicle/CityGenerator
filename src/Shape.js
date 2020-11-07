@@ -1,37 +1,40 @@
 class Shape {
-    vertices = []
+    polygon = []
     centerBB
     width
     height
     leftUp
     rightDown
 
-    constructor(vertices) {   
-        this.vertices = vertices.map(v => [v.x, v.y])
-        let bounds = geometric.polygonBounds(this.vertices)
+    constructor(vertices) {
+        this.polygon = vertices.map(v => [v.x, v.y])
+        let bounds = geometric.polygonBounds(this.polygon)
         this.leftUp = createVector(bounds[0][0], bounds[0][1])
         this.rightDown = createVector(bounds[1][0], bounds[1][1])
         this.width = this.rightDown.x - this.leftUp.x
         this.height = this.rightDown.y - this.leftUp.y
         this.centerBB = createVector(this.leftUp.x + this.width / 2, this.leftUp.y + this.height / 2)
 
-        this.vertices = geometric.polygonScale(this.vertices, .85)
+        this.polygon = geometric.polygonScale(this.polygon, .85)
     }
 
-    display() {
-
-        this.drawShape()
-        this.drawCenter()
+    display(color) {
+        this.drawShape(color)
+        // this.drawCenter()
         // this.drawBoundingBox()
 
     }
 
-    drawShape() {
+    drawShape(color) {
         noStroke()
         beginShape()
         // stroke('red')
-        fill(255, 228, 181, 128)
-        this.vertices.forEach(v => {
+        if (color != undefined) {
+            fill(color)
+        } else {
+            fill(255, 228, 181, 128)            
+        }
+        this.polygon.forEach(v => {
             vertex(v[0], v[1])
         })
         endShape()
