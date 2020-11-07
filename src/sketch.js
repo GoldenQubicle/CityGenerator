@@ -34,6 +34,9 @@ function setup() {
   // and if yes, it means the shape is too large and, while technically correct, not desirable for our purpose
   // TODO move this into detection proper as otherwise shapes will be missed
   // since the algo already has found 2 shapes, however, only afterwards is it declared invalid
+  
+  // let overlap = shapes.map(shape => shapes.filter(s => shape.hasOverlap(s)))
+  // print(overlap)
   // shapes = shapes.filter(s => {
   //   let inside = false
   //   for (mn of graph.nodes) {
@@ -45,13 +48,12 @@ function setup() {
   //   return !inside
   // })
 
-  // // finally also need to account for possible duplicate shapes
-  // // which are the result of a closed loop, i.e. a single edge wherein start & end are the same node
-  // for (group of groupBy(shapes, s => s.centerBB.x + s.centerBB.y)) {
-  //   if (group[1].length == 2) {
-  //     shapes.splice(shapes.indexOf(group[1][0]), 1)
-  //   }
-  // }
+  // finally also need to account for possible duplicate shapes  
+  let groups = groupBy(shapes, s => s.vertices.reduce((acc, v) => acc+= (v[0]+v[1], 0)))
+  shapes = []
+  for (group of groups) {    
+    shapes.push(group[1][0])
+  }
 }
 
 
@@ -77,9 +79,11 @@ function draw() {
   scale(.5)
   translate(512, 512)
   river.display()
+  
+  shapes.forEach(s => s.display())
   network.display({ showNodes: true })
 
-  trimmedGraph.edges.forEach(e => e.display('white'))
+  trimmedGraph.edges.forEach(e => e.display('lightblue'))
   // trimmedGraph.nodes.forEach(n => n.display())
 
   if (networkSettings.showCurves) {
@@ -94,18 +98,17 @@ function draw() {
     }
   })
 
-  // mnw.display()
-  // let selectedEdge = 214
-  // mnw.metaEdges[selectedEdge].display('purple')
-  // mnw.metaEdges[selectedEdge].verts.forEach(v =>{
-  //   noFill()
-  //   circle(v.pos.x, v.pos.y, 10)
-  // } )
+  mnw.display()
+  let selectedEdge = 151
+  mnw.metaEdges[selectedEdge].display('purple')
+  mnw.metaEdges[selectedEdge].verts.forEach(v =>{
+    noFill()
+    circle(v.pos.x, v.pos.y, 10)
+  } )
   // let p = mnw.metaEdges[selectedEdge].start.pos
   // // circle(p.x, p.y, 15)
   // print(mnw.metaEdges[selectedEdge])
 
-  shapes.forEach(s => s.display())
   // network.stats()   
 
   noLoop()

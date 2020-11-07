@@ -31,11 +31,10 @@ function createMetaNetworkFromGraph(graph) {
     // since we indiscrimentaly created new edges above we have twice as many now.
     // that is, for every node there are only dead-end edges going out and we need to connect everything
     // to do this group the edges by a unique key, a combination of midpoint & vertices length
-    // however as the key is based on x & y values, some combinations could be the same, hence subtract & add 'magic' values
+    // the unique key is quite elaborate to combat edge cases (mostly in a grid) wherein the x & y yield to same outcome
     // recall every start of an edge already is a new meta node
     // thus for every pair of edges, swap the dead-ends for the start of the other and take the 1st edge
     let edgePairs = groupBy(metaEdges, e => (abs(e.midPoint.x) + 7 / abs(e.midPoint.y) - 7 + e.verts.length + e.verts.reduce((acc, v) => acc+=v.id, 0)).toFixed(5))
-    // let edgePairs = groupBy(metaEdges, e => e.verts.reduce((acc, v) => acc+=v.id, 0))
     metaEdges = []
     edgePairs.forEach(pair => {
         pair[0].start.replaceNeighbor(pair[0].end, pair[1].start)
@@ -43,17 +42,8 @@ function createMetaNetworkFromGraph(graph) {
         pair[0].end = pair[1].start
         pair[0].start.metaNeighbors.push({ node: pair[0].end, edge: pair[0] })
         pair[0].end.metaNeighbors.push({ node: pair[0].start, edge: pair[0] })
-        metaEdges.push(pair[0])
-        if (pair.length > 2) {
-            pair[2].start.replaceNeighbor(pair[2].end, pair[3].start)
-            pair[3].start.replaceNeighbor(pair[3].end, pair[2].start)
-            pair[2].end = pair[3].start
-            pair[2].start.metaNeighbors.push({ node: pair[2].end, edge: pair[2] })
-            pair[2].end.metaNeighbors.push({ node: pair[2].start, edge: pair[2] })
-            metaEdges.push(pair[2])
-        }
-    })
-    print(edgePairs)
+        metaEdges.push(pair[0])        
+    })    
 
     //by definition an edge can be part of 2 shapes at most,
     //or just 1 shape if at the outside of the graph
@@ -101,23 +91,27 @@ function detectCyclesInMetaNetwork(mnw, nodes) {
     let foundShapes = mnw.metaEdges.map(me => [])
 
     mnw.metaEdges.forEach(me => {
+        let stop = false
         // only do cycle detection if not all path shapes have been found for the current edge
         // pass down any path shape already found in order to exclude it from search
-        if (foundShapes[me.id] < me.shapes) {
+        if (foundShapes[me.id].length < me.shapes) {
             // print("outer while for edge ", me.id)
             let cycles = detectCyclesForMetaEdge(me, foundCycles[me.id])
             cycles.forEach(cycle => {
                 let shape = createShapeFromPathNodes(pathEdgesToNodes(cycle))
-                let inside = nodes.filter(n => geometric.pointInPolygon(n.asPoint(), shape.vertices))
+                let inside = mnw.metaNodes.filter(n => geometric.pointInPolygon(n.asPoint(), shape.vertices))
 
                 if (inside.length == 0) {
                     foundShapes[me.id].push(shape)
-                    cycle.forEach(e => foundShapes[me.id].push(shape))
+                    cycle.forEach(e => foundShapes[e.id].push(shape))
                 }
                 foundCycles[me.id].push(cycle)
-                cycle.forEach(e => foundCycles[me.id].push(shape))
-
+                cycle.forEach(e => foundCycles[e.id].push(cycle))               
             })
+            // print(me.id, " ", foundShapes[me.id].length)
+            // if(foundShapes[me.id] == me.shapes || foundCycles[me.id].length >= 3){
+            //     break
+            // }
         }
     })
     return foundShapes.flat()
@@ -140,7 +134,7 @@ function detectCyclesForMetaEdge(edge, foundCycle) {
     let nextnn = getOtherMetaNeighbors(current, edgesExcluded)
     //insert at front of queue
     theQueue.unshift(...nextnn)
-    // print("BFS for edge ", edge.id)
+    // print("BFS for edge ", edge.id, foundCycle)
     while (foundCycles != edge.shapes && current != undefined) {
         if (current.node != edge.end) {
             // print("current edge:", current.edge.id, current.path)
