@@ -1,10 +1,11 @@
 /// <reference path="../node_modules/@types/p5/global.d.ts" />
 let mnw
 let network
+let trimmedGraph
 let river
 let shapes = []
 function preload() {
-  networkSettings = loadJSON("data/nws_decent.json")
+  networkSettings = loadJSON("data/nws_grid.json")
 }
 
 function setup() {
@@ -21,9 +22,9 @@ function setup() {
 
   generate()
   let graph = { nodes: network.nodes, edges: network.edges }
-  graph = removeDeadEnds(graph)
-  mnw = createMetaNetworkFromGraph(graph)
-  shapes = detectCyclesInMetaNetwork(mnw)
+  trimmedGraph = removeDeadEnds(graph)
+  mnw = createMetaNetworkFromGraph(trimmedGraph)
+  shapes = detectCyclesInMetaNetwork(mnw, graph.nodes)
 
   // soo interesting issue;
   // there's a situation wherein a metaEdge is marked as belonging to 2 shapes
@@ -31,25 +32,26 @@ function setup() {
   // that one of shapes found is not the smallest possible
   // hence we filter out by checking if any of the meta nodes are within the shape
   // and if yes, it means the shape is too large and, while technically correct, not desirable for our purpose
-
-  shapes = shapes.filter(s => {
-    let inside = false
-    for (mn of graph.nodes) {
-      if (geometric.pointInPolygon(mn.asPoint(), s.vertices)) {
-        inside = true
-        break
-      }
-    }
-    return !inside
-  })
+  // TODO move this into detection proper as otherwise shapes will be missed
+  // since the algo already has found 2 shapes, however, only afterwards is it declared invalid
+  // shapes = shapes.filter(s => {
+  //   let inside = false
+  //   for (mn of graph.nodes) {
+  //     if (geometric.pointInPolygon(mn.asPoint(), s.vertices)) {
+  //       inside = true
+  //       break
+  //     }
+  //   }
+  //   return !inside
+  // })
 
   // // finally also need to account for possible duplicate shapes
   // // which are the result of a closed loop, i.e. a single edge wherein start & end are the same node
-  for (group of groupBy(shapes, s => s.centerBB.x + s.centerBB.y)) {
-    if (group[1].length == 2) {
-      shapes.splice(shapes.indexOf(group[1][0]), 1)
-    }
-  }
+  // for (group of groupBy(shapes, s => s.centerBB.x + s.centerBB.y)) {
+  //   if (group[1].length == 2) {
+  //     shapes.splice(shapes.indexOf(group[1][0]), 1)
+  //   }
+  // }
 }
 
 
@@ -72,8 +74,12 @@ function generate() {
 
 function draw() {
   background(128)
+  scale(.5)
+  translate(512, 512)
   river.display()
   network.display({ showNodes: true })
+  // trimmedGraph.nodes.forEach(n => n.display())
+  // trimmedGraph.edges.forEach(e => e.display())
 
   if (networkSettings.showCurves) {
     responseCurves.display()
@@ -87,14 +93,18 @@ function draw() {
     }
   })
 
-  // mnw.display()
-  // let selectedEdge = 56
-  // mnw.metaEdges[selectedEdge].display('purple')
-  // let p = mnw.metaEdges[selectedEdge].start.pos
+  mnw.display()
+  let selectedEdge = 199
+  mnw.metaEdges[selectedEdge].display('purple')
+  mnw.metaEdges[selectedEdge].verts.forEach(v =>{
+    noFill()
+    circle(v.pos.x, v.pos.y, 10)
+  } )
+  let p = mnw.metaEdges[selectedEdge].start.pos
   // circle(p.x, p.y, 15)
-  // print(mnw.metaEdges[selectedEdge])
+  print(mnw.metaEdges[selectedEdge])
 
-  shapes.forEach(s => s.display())
+  // shapes.forEach(s => s.display())
   // network.stats()   
 
   noLoop()
