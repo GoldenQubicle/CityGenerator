@@ -15,7 +15,7 @@ class Shape {
         this.height = this.rightDown.y - this.leftUp.y
         this.centerBB = createVector(this.leftUp.x + this.width / 2, this.leftUp.y + this.height / 2)
 
-        this.polygon = geometric.polygonScale(this.polygon, .85)
+        this.polygon = geometric.polygonScale(this.polygon, .9)
     }
 
     display(color) {
