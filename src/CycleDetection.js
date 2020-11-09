@@ -34,7 +34,7 @@ function detectClosedShapes(graph) {
     // })
 
     // finally also need to account for possible duplicate shapes  
-    let groups = groupBy(shapes, s => s.polygon.reduce((acc, v) => acc += (v[0] + v[1], 0)))
+    let groups = groupBy(shapes, s => s.polygon.verts.reduce((acc, v) => acc += (v[0] + v[1], 0)))
     shapes = []
     for (group of groups) {
         shapes.push(group[1][0])

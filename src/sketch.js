@@ -27,7 +27,7 @@ function setup() {
   generateNetwork()
   let graph = { nodes: network.nodes, edges: network.edges }
 
-  // generateShapes()
+  generateShapes()
   generatePlots(graph)
 
   clipper = new ClipperLib.Clipper();
@@ -43,20 +43,24 @@ function draw() {
   network.display({ showNodes: true })
   // shapes.forEach(s => s.display())
   qtPlots.each(qt => qt.plot.display())
+
+  let pos = createVector(256, 512)
+  let dim = createVector(20, 80)
   
   var colliding = qtPlots.colliding({
-    x: this.width/2,
-    y: 600,
-    width: 25, //Optional
-    height: 25 //Optional
-})
-  // noFill()
-  colliding.forEach(c => c.plot.display('', bb = true))
+    x: pos.x,
+    y: pos.y,
+    width: dim.x,
+    height: dim.y
+  })
+
+  colliding.forEach(c => c.plot.display(color(255, 0), bb = true))
   noFill()
   stroke('yellow')
-  // rectMode(CENTER)
-  rect(512, 600, 25, 25)
-  // colliding[0].plot.display('red')
+  rect(pos.x, pos.y, dim.x, dim.y)
+  // colliding[0].plot.display(color(64,255,128,255), true)
+
+
   // network.traceThroughRoutes()  
   // trimmedGraph.display()
   // mnw.display()
@@ -79,13 +83,13 @@ function generatePlots(graph) {
     height: this.height,
     maxElements: 100
   })
-  
-  graph.edges.forEach(edge =>{
+
+  graph.edges.forEach(edge => {
     // let edge = graph.edges[176]
     let pos = edge.getPointOn(.5)
     let angle = edge.getAngle()
     let p1 = new Plot(pos, angle, edge.length)
-    let p2 = new Plot(pos, angle + radians(180),edge.length)
+    let p2 = new Plot(pos, angle + radians(180), edge.length)
     qtPlots.push(p1.asQuadTreeObject())
     qtPlots.push(p2.asQuadTreeObject())
   })
