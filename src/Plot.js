@@ -9,14 +9,14 @@ class Plot {
             createVector(.5, 0),
             createVector(.5, 1),
             createVector(-.5, 1),
-        ])  
+        ])
     }
 
     asQuadTreeObject() {
         // obviously wrong dimensions since we translate, rotate & scale
         // correct would be to calculate the bounding box
         // this requires using geometric methods to retrieve the 'world' vertex coordinates for the polygon        
-        let bounds = this.displayBoundinBox()        
+        let bounds = this.displayBoundinBox()
         return {
             x: bounds.x,
             y: bounds.y,
@@ -26,15 +26,18 @@ class Plot {
         }
     }
 
-    display() {
-        this.displayBoundinBox()
-                
+    display(color, bb = false) {
+        if (bb) {
+            this.displayBoundinBox()
+        }
+
+        circle(this.pos.x, this.pos.y, 3)
         push()
         //note ordering matters
         translate(this.pos.x, this.pos.y)
         rotate(this.angle)
         scale(this.width, this.depth)
-        this.shape.display()    
+        this.shape.display(color)
         pop()
     }
 
@@ -62,8 +65,8 @@ class Plot {
         stroke('red')
         noFill()
         // fill(250, 250, 210, 155)
-        rectMode(CENTER)
-        rect(centerBB.x, centerBB.y, width, height)
+        // rectMode(CENTER)
+        rect(leftUp.x, leftUp.y, width, height)
 
         noStroke()
         fill('red')
@@ -71,6 +74,6 @@ class Plot {
         verts.forEach(v => vertex(v[0], v[1]))
         endShape()
 
-        return {x : centerBB.x, y: centerBB.y, width : width, height: height}
+        return { x: leftUp.x, y: leftUp.y, width: width, height: height }
     }
 }

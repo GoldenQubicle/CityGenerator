@@ -1,4 +1,5 @@
 /// <reference path="../node_modules/@types/p5/global.d.ts" />
+
 let mnw
 let network
 let trimmedGraph
@@ -6,6 +7,7 @@ let river
 let shapes = []
 let plots = []
 let qtPlots
+let clipper
 function preload() {
   networkSettings = loadJSON("data/nws_default.json")
 }
@@ -28,6 +30,8 @@ function setup() {
   // generateShapes()
   generatePlots(graph)
 
+  clipper = new ClipperLib.Clipper();
+
 }
 
 function draw() {
@@ -39,6 +43,20 @@ function draw() {
   network.display({ showNodes: true })
   // shapes.forEach(s => s.display())
   qtPlots.each(qt => qt.plot.display())
+  
+  var colliding = qtPlots.colliding({
+    x: this.width/2,
+    y: 600,
+    width: 25, //Optional
+    height: 25 //Optional
+})
+  // noFill()
+  colliding.forEach(c => c.plot.display('', bb = true))
+  noFill()
+  stroke('yellow')
+  // rectMode(CENTER)
+  rect(512, 600, 25, 25)
+  // colliding[0].plot.display('red')
   // network.traceThroughRoutes()  
   // trimmedGraph.display()
   // mnw.display()
@@ -47,6 +65,8 @@ function draw() {
   if (networkSettings.showCurves) {
     responseCurves.display()
   }
+
+
 
   // networkRules[NextToIntersection].debugDraw()
   // network.stats()   
@@ -60,17 +80,15 @@ function generatePlots(graph) {
     maxElements: 100
   })
   
-  // graph.edges.forEach(edge =>{
-    let edge = graph.edges[176]
+  graph.edges.forEach(edge =>{
+    // let edge = graph.edges[176]
     let pos = edge.getPointOn(.5)
     let angle = edge.getAngle()
     let p1 = new Plot(pos, angle, edge.length)
-    // let p2 = new Plot(pos, angle + radians(180),edge.length)
+    let p2 = new Plot(pos, angle + radians(180),edge.length)
     qtPlots.push(p1.asQuadTreeObject())
-    // qtPlots.push(p2.asQuadTreeObject())
-  // })
-  
-
+    qtPlots.push(p2.asQuadTreeObject())
+  })
 }
 
 function generateShapes() {
