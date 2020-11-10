@@ -5,7 +5,7 @@ class Polygon {
     height
     leftUp
     rightDown
-
+    clipperScale = 10000
     // vertices PVector[]
     forShape(vertices, scale) {
         this.verts = vertices.map(v => [v.x, v.y])
@@ -28,7 +28,7 @@ class Polygon {
         this.verts = verts
         this.createBounds()
         return this
-    }
+    }    
 
     createBounds() {
         let bounds = geometric.polygonBounds(this.verts)
@@ -46,6 +46,24 @@ class Polygon {
             width: this.width,
             height: this.height,
         }
+    }
+
+    asClipperPath() {
+        let path = []
+        this.verts.forEach(v => path.push(
+            {
+                "X": parseInt(v[0] * this.clipperScale),
+                "Y": parseInt(v[1] * this.clipperScale)
+            }))
+        return path
+    }
+
+    fromClipperPath(path){
+        path.forEach(p =>{
+            this.verts.push([p.X / this.clipperScale, p.Y / this.clipperScale])
+        })
+        this.createBounds()
+        return this
     }
 
     display(color, bb) {
@@ -82,7 +100,7 @@ class Polygon {
     drawBoundingBox() {
         noFill()
         stroke('red')
-        strokeWeight(1)        
+        strokeWeight(1)
         rect(this.leftUp.x, this.leftUp.y, this.width, this.height)
     }
 }

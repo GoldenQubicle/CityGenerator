@@ -44,22 +44,41 @@ function draw() {
   // shapes.forEach(s => s.display())
   qtPlots.each(qt => qt.plot.display())
 
-  let pos = createVector(256, 512)
-  let dim = createVector(20, 80)
+  // let pos = createVector(252, 573)
+  // let dim = createVector(24, 25)
   
-  var colliding = qtPlots.colliding({
-    x: pos.x,
-    y: pos.y,
-    width: dim.x,
-    height: dim.y
+  // var colliding = qtPlots.colliding({
+  //   x: pos.x,
+  //   y: pos.y,
+  //   width: dim.x,
+  //   height: dim.y
+  // })
+
+  let p = qtPlots.find(qt => qt.plot.id == 147)[0].plot.asQuadTreeObject()   
+  let colliding = qtPlots.colliding(p, (qt1, qt2) => geometric.polygonIntersectsPolygon(qt1.plot.polygon.verts, qt2.plot.polygon.verts) )
+  
+  let subject = p.plot.polygon.asClipperPath()
+  print(subject)
+  clipper.AddPath(subject, ClipperLib.PolyType.ptSubject, true)
+  colliding.forEach(c =>{
+    if(c.plot.id != 147){
+      clipper.AddPath(c.plot.polygon.asClipperPath(), ClipperLib.PolyType.ptClip, true)
+    }    
   })
 
-  colliding.forEach(c => c.plot.display(color(255, 0), bb = true))
+  let solution = new ClipperLib.Paths();
+  clipper.Execute(ClipperLib.ClipType.ctDifference, solution)  
+  print(solution)
+  let ps1 = new Polygon().fromClipperPath(solution[0])
+  ps1.display('blue')
+
+  // colliding.forEach(c => c.plot.polygon.drawCenter())
   noFill()
   stroke('yellow')
-  rect(pos.x, pos.y, dim.x, dim.y)
+  // rect(p.x, p.y, p.width, p.height)
+  // p.plot.display(color(64,255,128,64))
   // colliding[0].plot.display(color(64,255,128,255), true)
-
+  // print(colliding[0].plot.asQuadTreeObject())
 
   // network.traceThroughRoutes()  
   // trimmedGraph.display()
@@ -90,6 +109,8 @@ function generatePlots(graph) {
     let angle = edge.getAngle()
     let p1 = new Plot(pos, angle, edge.length)
     let p2 = new Plot(pos, angle + radians(180), edge.length)
+    p1.id = edge.id
+    p2.id = edge.id
     qtPlots.push(p1.asQuadTreeObject())
     qtPlots.push(p2.asQuadTreeObject())
   })
