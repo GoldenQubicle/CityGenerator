@@ -6,6 +6,7 @@ class Polygon {
     leftUp
     rightDown
     clipperScale = 10000
+    
     // vertices PVector[]
     forShape(vertices, scale) {
         this.verts = vertices.map(v => [v.x, v.y])
@@ -13,7 +14,6 @@ class Polygon {
         this.verts = geometric.polygonScale(this.verts, scale)
         return this
     }
-
 
     forPlot(pos, rotation, width, depth) {
         let origin = [pos.x, pos.y]

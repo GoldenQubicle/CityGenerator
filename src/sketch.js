@@ -36,49 +36,42 @@ function setup() {
 
 function draw() {
   background('#2d5425')
-  // scale(.5)
-  // translate(512, 512)
 
-  river.display()
+  // river.display()
   network.display({ showNodes: true })
-  // shapes.forEach(s => s.display())
-  qtPlots.each(qt => qt.plot.display())
+  shapes.forEach(s => s.display())
 
-  // let pos = createVector(252, 573)
-  // let dim = createVector(24, 25)
-  
-  // var colliding = qtPlots.colliding({
-  //   x: pos.x,
-  //   y: pos.y,
-  //   width: dim.x,
-  //   height: dim.y
-  // })
+  let ends = network.nodes.filter(n =>{
+    return n.status ==  ActiveEnd &&
+    shapes.filter(s => geometric.pointInPolygon(n.asPoint() ,s.polygon.verts)).length == 0
+  } )
 
-  let p = qtPlots.find(qt => qt.plot.id == 147)[0].plot.asQuadTreeObject()   
-  let colliding = qtPlots.colliding(p, (qt1, qt2) => geometric.polygonIntersectsPolygon(qt1.plot.polygon.verts, qt2.plot.polygon.verts) )
-  
-  let subject = p.plot.polygon.asClipperPath()
-  print(subject)
-  clipper.AddPath(subject, ClipperLib.PolyType.ptSubject, true)
-  colliding.forEach(c =>{
-    if(c.plot.id != 147){
-      clipper.AddPath(c.plot.polygon.asClipperPath(), ClipperLib.PolyType.ptClip, true)
-    }    
+  // print(shapes.filter(s => geometric.pointInPolygon(ends[18].asPoint() ,s.polygon.verts)).length == 0 )
+
+  let x = ends.reduce((total, node) => total + node.pos.x, 0) / ends.length
+  let y = ends.reduce((total, node) => total + node.pos.y, 0) / ends.length
+  let avarage = new Node(createVector(x, y))
+  circle(avarage.pos.x, avarage.pos.y, 15, 15)
+  let sorted = sortNodesClockwise(avarage, ends).neighbors.map(n => n.node)
+  print(sorted)
+  sorted.forEach((n,i) =>{
+    if(i > 0){
+      let prev = sorted[i-1]
+      stroke('purple')      
+      textSize(10)
+      text(i, n.pos.x, n.pos.y )
+      line(n.pos.x, n.pos.y, prev.pos.x, prev.pos.y)
+      // line(n.node.pos.x, n.node.pos.y, avarage.pos.x, avarage.pos.y)
+    }
+    if(i == 0){
+      let prev = sorted[sorted.length-1]
+      stroke('purple')      
+      textSize(10)
+      text(i, n.pos.x, n.pos.y )
+      line(n.pos.x, n.pos.y, prev.pos.x, prev.pos.y)
+    }
+
   })
-
-  let solution = new ClipperLib.Paths();
-  clipper.Execute(ClipperLib.ClipType.ctDifference, solution)  
-  print(solution)
-  let ps1 = new Polygon().fromClipperPath(solution[0])
-  ps1.display('blue')
-
-  // colliding.forEach(c => c.plot.polygon.drawCenter())
-  noFill()
-  stroke('yellow')
-  // rect(p.x, p.y, p.width, p.height)
-  // p.plot.display(color(64,255,128,64))
-  // colliding[0].plot.display(color(64,255,128,255), true)
-  // print(colliding[0].plot.asQuadTreeObject())
 
   // network.traceThroughRoutes()  
   // trimmedGraph.display()
@@ -121,8 +114,8 @@ function generateShapes() {
   shapes = []
   let graph = { nodes: network.nodes, edges: network.edges }
   let result = detectClosedShapes(graph)
-  trimmedGraph = result.trimmedGraph
-  mnw = result.metaNetwork
+  // trimmedGraph = result.trimmedGraph
+  // mnw = result.metaNetwork
   shapes = result.shapes
 
   if (networkSettings.hasRiver) {
@@ -160,13 +153,15 @@ function keyPressed() {
 function keyReleased() {
   if (key == 'r') {
     generateNetwork()
-    // generateShapes()
+    generateShapes()
     loop()
   }
 }
 
 function mouseClicked() {
   network.iterate()
+  // generateShapes()
+
   loop()
 }
 
