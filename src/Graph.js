@@ -231,7 +231,7 @@ function removeDeadEnds(graph) {
           current = neighbor
           neighbor = newNeighbor
         } else {
-          neighbor.delNeighbor(current)
+          // neighbor.delNeighbor(current)
           next = false
         }
       }

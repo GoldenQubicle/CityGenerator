@@ -39,6 +39,9 @@ function draw() {
 
   // river.display()
   network.display({ showNodes: true })
+  trimmedGraph.display()
+  // print(trimmedGraph)
+
   shapes.forEach(s => s.display())
 
   let ends = network.nodes.filter(n =>{
@@ -51,30 +54,29 @@ function draw() {
   let x = ends.reduce((total, node) => total + node.pos.x, 0) / ends.length
   let y = ends.reduce((total, node) => total + node.pos.y, 0) / ends.length
   let avarage = new Node(createVector(x, y))
-  circle(avarage.pos.x, avarage.pos.y, 15, 15)
+  // circle(avarage.pos.x, avarage.pos.y, 15, 15)
   let sorted = sortNodesClockwise(avarage, ends).neighbors.map(n => n.node)
-  print(sorted)
+  // print(sorted)
   sorted.forEach((n,i) =>{
     if(i > 0){
       let prev = sorted[i-1]
       stroke('purple')      
       textSize(10)
-      text(i, n.pos.x, n.pos.y )
-      line(n.pos.x, n.pos.y, prev.pos.x, prev.pos.y)
+      // text(i, n.pos.x, n.pos.y )
+      // line(n.pos.x, n.pos.y, prev.pos.x, prev.pos.y)
       // line(n.node.pos.x, n.node.pos.y, avarage.pos.x, avarage.pos.y)
     }
     if(i == 0){
       let prev = sorted[sorted.length-1]
       stroke('purple')      
       textSize(10)
-      text(i, n.pos.x, n.pos.y )
-      line(n.pos.x, n.pos.y, prev.pos.x, prev.pos.y)
+      // text(i, n.pos.x, n.pos.y )
+      // line(n.pos.x, n.pos.y, prev.pos.x, prev.pos.y)
     }
 
   })
 
   // network.traceThroughRoutes()  
-  // trimmedGraph.display()
   // mnw.display()
   // mnw.selectEdge(33)  
 
@@ -114,7 +116,7 @@ function generateShapes() {
   shapes = []
   let graph = { nodes: network.nodes, edges: network.edges }
   let result = detectClosedShapes(graph)
-  // trimmedGraph = result.trimmedGraph
+  trimmedGraph = result.trimmedGraph
   // mnw = result.metaNetwork
   shapes = result.shapes
 
@@ -160,7 +162,7 @@ function keyReleased() {
 
 function mouseClicked() {
   network.iterate()
-  // generateShapes()
+  generateShapes()
 
   loop()
 }
