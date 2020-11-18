@@ -226,7 +226,9 @@ function duplicate(graph) {
       let neighbor = newNodes.filter(n => n.id == id)[0]
       newEdges.push(new Edge(node, neighbor))
        // this is so silly but it works
-       // essentially; when creating a new edge 
+       // essentially; when creating a new edge it registers both nodes as neigbors to each other
+       // however, since we're going over ALL nodes this results in duplicate neighbor registration
+       // hence, remove the current node from the neighbor again (the other way around doesn't work for some reason!)
       neighbor.delNeighbor(node)
     })
   })
