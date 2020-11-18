@@ -44,10 +44,10 @@ function draw() {
 
   shapes.forEach(s => s.display())
 
-  let ends = network.nodes.filter(n =>{
-    return n.status ==  ActiveEnd &&
-    shapes.filter(s => geometric.pointInPolygon(n.asPoint() ,s.polygon.verts)).length == 0
-  } )
+  let ends = network.nodes.filter(n => {
+    return n.status == ActiveEnd &&
+      shapes.filter(s => geometric.pointInPolygon(n.asPoint(), s.polygon.verts)).length == 0
+  })
 
   // print(shapes.filter(s => geometric.pointInPolygon(ends[18].asPoint() ,s.polygon.verts)).length == 0 )
 
@@ -57,18 +57,18 @@ function draw() {
   // circle(avarage.pos.x, avarage.pos.y, 15, 15)
   let sorted = sortNodesClockwise(avarage, ends).neighbors.map(n => n.node)
   // print(sorted)
-  sorted.forEach((n,i) =>{
-    if(i > 0){
-      let prev = sorted[i-1]
-      stroke('purple')      
+  sorted.forEach((n, i) => {
+    if (i > 0) {
+      let prev = sorted[i - 1]
+      stroke('purple')
       textSize(10)
       // text(i, n.pos.x, n.pos.y )
       // line(n.pos.x, n.pos.y, prev.pos.x, prev.pos.y)
       // line(n.node.pos.x, n.node.pos.y, avarage.pos.x, avarage.pos.y)
     }
-    if(i == 0){
-      let prev = sorted[sorted.length-1]
-      stroke('purple')      
+    if (i == 0) {
+      let prev = sorted[sorted.length - 1]
+      stroke('purple')
       textSize(10)
       // text(i, n.pos.x, n.pos.y )
       // line(n.pos.x, n.pos.y, prev.pos.x, prev.pos.y)
@@ -117,7 +117,7 @@ function generateShapes() {
   let graph = { nodes: network.nodes, edges: network.edges }
   let result = detectClosedShapes(graph)
   trimmedGraph = result.trimmedGraph
-  // mnw = result.metaNetwork
+  mnw = result.metaNetwork
   shapes = result.shapes
 
   if (networkSettings.hasRiver) {

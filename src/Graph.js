@@ -165,6 +165,7 @@ let grid = [
 
 ]
 
+
 function constructGraph(steps) {
   let nodes = []
   let edges = []
@@ -211,8 +212,30 @@ function constructGraph(steps) {
   }
 }
 
+
+function duplicate(graph) {
+  let idMapping = []
+  //map nodes ids and their neighbors ids to reconstruct the graph 
+  graph.nodes.forEach(n => {
+    idMapping[n.id] = n.neighbors.map(nn => nn.id)
+  })
+  let newNodes = graph.nodes.map(n => n.clone())
+  let newEdges = []
+  newNodes.forEach(node => {
+    idMapping[node.id].forEach(id => {
+      let neighbor = newNodes.filter(n => n.id == id)[0]
+      newEdges.push(new Edge(node, neighbor))
+       // this is so silly but it works
+       // essentially; when creating a new edge 
+      neighbor.delNeighbor(node)
+    })
+  })
+  return {nodes:newNodes, edges: newEdges}
+}
+
 function removeDeadEnds(graph) {
   let toBeRemoved = []
+
   // go over all nodes with 1 connection
   // foreach head follow neighbors with 2 connections
   // and keep track as all those nodes need to go
@@ -221,9 +244,7 @@ function removeDeadEnds(graph) {
     .forEach(current => {
       let neighbor = current.neighbors[0]
       let next = true
-
       toBeRemoved.push(current)
-
       while (next) {
         if (neighbor.connections == 2) {
           toBeRemoved.push(neighbor)
@@ -231,13 +252,21 @@ function removeDeadEnds(graph) {
           current = neighbor
           neighbor = newNeighbor
         } else {
-          // neighbor.delNeighbor(current)
+          // let i = idMapping[neighbor.id].indexOf(current.id)
+          // idMapping[neighbor.id].splice(i, 1)
+          neighbor.delNeighbor(current)
           next = false
         }
       }
     })
+
+  // let subset = idMapping.filter((v, i) => !toBeRemoved.includes(i) )  
+
   // filter out the nodes to be removed
-  graph.nodes = graph.nodes.filter(n => !toBeRemoved.includes(n))
-  graph.edges = graph.edges.filter(s => !toBeRemoved.includes(s.start) && !toBeRemoved.includes(s.end))
-  return graph
+  let nodes = graph.nodes.filter(n => !toBeRemoved.includes(n))
+  let edges = graph.edges.filter(s => !toBeRemoved.includes(s.start) && !toBeRemoved.includes(s.end))
+
+  // let node { actual: n, connections: trimmedneighbors.length, neighbors: trimmedNeighbors }
+
+  return { nodes: nodes, edges: edges }
 }

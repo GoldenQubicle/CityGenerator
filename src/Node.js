@@ -11,6 +11,12 @@ class Node {
         this.setStatus()
     }
 
+    clone(){
+        let newNode = new Node(createVector(this.pos.x, this.pos.y))
+        newNode.id = this.id
+        return newNode
+    }
+
     heading(){
         return this.pos.heading()
     }

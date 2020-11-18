@@ -1,8 +1,10 @@
 function detectClosedShapes(graph) {
-    let trimmedGraph = removeDeadEnds(graph)
+    let trimmedGraph = removeDeadEnds(duplicate(graph))
+    print(graph)
+    print(duplicate(graph))
     trimmedGraph.display = function () {
         this.edges.forEach(e => e.display('lightblue'))
-        // this.nodes.forEach(n => n.display())
+        this.nodes.forEach(n => n.display())
     }
     print("trimmed graph")
     print("nodes:", trimmedGraph.nodes.length, "edges:", trimmedGraph.edges.length)
