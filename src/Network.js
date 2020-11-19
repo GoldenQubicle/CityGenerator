@@ -8,6 +8,7 @@ class Network {
     iterations = networkSettings.iterations
     spawnPoints
     it
+    nodeId = -1
 
     constructor(width, height) {
         this.width = width
@@ -24,6 +25,11 @@ class Network {
             height: height,
             maxElements: this.qtMax
         })
+    }
+
+    getNodeId(){
+        this.nodeId++
+        return this.nodeId
     }
 
     generate() {

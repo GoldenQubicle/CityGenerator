@@ -115,6 +115,7 @@ function generateShapes() {
   trimmedGraph = []
   shapes = []
   let graph = { nodes: network.nodes, edges: network.edges }
+  print("graph:" , graph)
   let result = detectClosedShapes(graph)
   trimmedGraph = result.trimmedGraph
   mnw = result.metaNetwork

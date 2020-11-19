@@ -148,7 +148,6 @@ function checkIntersections(node, config, edges, position) {
   return new Node(position)
 }
 
-let newNodeId = 0
 function addEdge(node, newNode, obj) {
   let edge = new Edge(node, newNode)
   edge.id = obj.edges.length
@@ -156,8 +155,8 @@ function addEdge(node, newNode, obj) {
   if (node.isBridge && newNode.isBridge) {
     obj.bridges.push(edge)
   }
-  newNode.id = newNodeId
-  newNodeId++
+  newNode.id = obj.getNodeId()
+  print(newNode.id)
   obj.edges.push(edge)
   obj.nodes.push(newNode)
 

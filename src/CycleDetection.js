@@ -1,7 +1,6 @@
 function detectClosedShapes(graph) {
-    let trimmedGraph = removeDeadEnds(duplicate(graph))
-    print(graph)
-    print(duplicate(graph))
+    print("duplicate", duplicate(graph))
+    let trimmedGraph = removeDeadEnds(duplicate(graph))    
     trimmedGraph.display = function () {
         this.edges.forEach(e => e.display('lightblue'))
         this.nodes.forEach(n => n.display())
@@ -9,7 +8,7 @@ function detectClosedShapes(graph) {
     print("trimmed graph")
     print("nodes:", trimmedGraph.nodes.length, "edges:", trimmedGraph.edges.length)
 
-    let mnw = {metaNodes: [], metaEdges: []} //createMetaNetworkFromGraph(trimmedGraph)
+    let mnw = {metaNodes: [], metaEdges:[]}//createMetaNetworkFromGraph(trimmedGraph)
     print("meta network")
     print("nodes:", mnw.metaNodes.length, "edges:", mnw.metaEdges.length)
     let shapes = [] //detectCyclesInMetaNetwork(mnw, graph.nodes)
@@ -81,6 +80,7 @@ function createMetaNetworkFromGraph(graph) {
     // recall every start of an edge already is a new meta node
     // thus for every pair of edges, swap the dead-ends for the start of the other and take the 1st edge
     let edgePairs = groupBy(metaEdges, e => (abs(e.midPoint.x) + 7 / abs(e.midPoint.y) - 7 + e.verts.length + e.verts.reduce((acc, v) => acc += v.id, 0)).toFixed(5))
+    
     metaEdges = []
     edgePairs.forEach(pair => {
         pair[0].start.replaceNeighbor(pair[0].end, pair[1].start)
