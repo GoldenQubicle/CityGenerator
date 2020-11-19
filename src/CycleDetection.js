@@ -8,10 +8,10 @@ function detectClosedShapes(graph) {
     print("trimmed graph")
     print("nodes:", trimmedGraph.nodes.length, "edges:", trimmedGraph.edges.length)
 
-    let mnw = {metaNodes: [], metaEdges:[]}//createMetaNetworkFromGraph(trimmedGraph)
+    let mnw = createMetaNetworkFromGraph(trimmedGraph)
     print("meta network")
     print("nodes:", mnw.metaNodes.length, "edges:", mnw.metaEdges.length)
-    let shapes = [] //detectCyclesInMetaNetwork(mnw, graph.nodes)
+    let shapes = detectCyclesInMetaNetwork(mnw, graph.nodes)
     
     // soo interesting issue;
     // there's a situation wherein a metaEdge is marked as belonging to 2 shapes
