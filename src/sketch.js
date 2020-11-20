@@ -39,12 +39,12 @@ function draw() {
 
   // river.display()
   network.display({ showNodes: true })
-  trimmedGraph.display()
-  // mnw.display()
+  // trimmedGraph.display()
+  mnw.display()
 
-  // shapes.forEach(s => s.display())
+  shapes.forEach(s => s.display())
 
-  connectOuterDeadEnds()
+  // connectOuterDeadEnds()
 
   // network.traceThroughRoutes()  
   // mnw.selectEdge(33)  
