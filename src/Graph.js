@@ -228,11 +228,11 @@ function duplicate(graph) {
       //first of all create a new edge which will register nodes as neighbors to each other
       //however since iterating over all the nodes the result is duplicate neighbor registrations (and edges!)
       //consequently need to unregister the current node from the neighbor (other way around doesn't work for some reason!)
-      newEdges.push(new Edge(node, neighbor))             
-      neighbor.delNeighbor(node)            
+      newEdges.push(new Edge(node, neighbor))
+      neighbor.delNeighbor(node)
     })
   })
-  return {nodes:newNodes, edges: newEdges}
+  return { nodes: newNodes, edges: newEdges }
 }
 
 function removeDeadEnds(graph) {
@@ -244,7 +244,7 @@ function removeDeadEnds(graph) {
     .filter(n => n.connections == 1)
     .forEach(current => {
       let neighbor = current.neighbors[0]
-      if(neighbor == null) return
+      if (neighbor == null) return
       let next = true
       toBeRemoved.push(current)
       while (next) {
@@ -253,7 +253,7 @@ function removeDeadEnds(graph) {
           let newNeighbor = neighbor.getOtherNeighbors(current)[0]
           current = neighbor
           neighbor = newNeighbor
-        } else {          
+        } else {
           neighbor.delNeighbor(current)
           next = false
         }
@@ -263,5 +263,11 @@ function removeDeadEnds(graph) {
   let nodes = graph.nodes.filter(n => !toBeRemoved.includes(n))
   let edges = graph.edges.filter(s => !toBeRemoved.includes(s.start) && !toBeRemoved.includes(s.end))
 
-  return { nodes: nodes, edges: edges }
+  return {
+    nodes, edges,
+    display: function () {
+      this.edges.forEach(e => e.display('lightblue'))
+      this.nodes.forEach(n => n.display())
+    }
+  }
 }

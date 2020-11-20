@@ -1,30 +1,30 @@
 function detectClosedShapes(graph) {
-    // print("duplicate", duplicate(graph))
+
     let trimmedGraph = removeDeadEnds(duplicate(graph))
-    trimmedGraph.display = function () {
-        this.edges.forEach(e => e.display('lightblue'))
-        this.nodes.forEach(n => n.display())
-    }
     print("trimmed graph")
     print("nodes:", trimmedGraph.nodes.length, "edges:", trimmedGraph.edges.length, trimmedGraph)
 
     let mnw = createMetaNetworkFromGraph(trimmedGraph)
     print("meta network")
     print("nodes:", mnw.metaNodes.length, "edges:", mnw.metaEdges.length, mnw)
-    let shapes = detectCyclesInMetaNetwork(mnw, graph.nodes)
 
-    // account for possible duplicate shapes  
+    // the cycle detection is quite aggresive and tries to find 2 shapes for a given edge
+    // consequently duplicate and overlapping shapes will be found
+    // hence to additional filter passes are needed to get a set of unique closed shapes
+    let shapes = detectCyclesInMetaNetwork(mnw)
+    // account for duplicate shapes
+    // use sum of their vertices x & y as grouping key
     let groups = groupBy(shapes, s => s.polygon.verts.reduce((acc, v) => acc += (v[0] + v[1], 0)))
     shapes = []
     for (group of groups) {
         shapes.push(group[1][0])
     }
-
+    // account for overlapping shapes
+    // use trimmed graph to find nodes within a shape and filter out
     shapes = shapes.filter(s => {
         let inside = trimmedGraph.nodes.filter(n => geometric.pointInPolygon(n.asPoint(), s.polygon.verts))
         return inside.length == 0
-    })  
-   
+    })
 
     return { trimmedGraph: trimmedGraph, metaNetwork: mnw, shapes: shapes }
 }
@@ -102,22 +102,20 @@ function createMetaNetworkFromGraph(graph) {
     }
 }
 
-function detectCyclesInMetaNetwork(mnw, nodes) {
+function detectCyclesInMetaNetwork(mnw) {
     // some terminology; 
     // a cycle refers to closed shape in the graph, i.e. the metanetwork 
     // the actual contents of a cycle is defined as a path shape
     // which is a collection of path edges, gathered in the BFS 
     let foundShapes = mnw.metaEdges.map(me => [])
+    //TODO optimize, no need to check an edge who's already part of 2 shapes after all    
     mnw.metaEdges.forEach(me => {
         let cycles = detectCyclesForMetaEdge(me)
         cycles.forEach(cycle => {
             if (cycle != null) {
                 let shape = createShapeFromPathNodes(pathEdgesToNodes(cycle))
-                let inside = mnw.metaNodes.filter(n => geometric.pointInPolygon(n.asPoint(), shape.polygon))
-                if (inside.length == 0) {
-                    foundShapes[me.id].push(shape)
-                    cycle.forEach(e => foundShapes[e.id].push(shape))
-                }
+                foundShapes[me.id].push(shape)
+                cycle.forEach(e => foundShapes[e.id].push(shape))
             }
         })
     })
@@ -126,8 +124,8 @@ function detectCyclesInMetaNetwork(mnw, nodes) {
 
 function detectCyclesForMetaEdge(edge) {
     // essentially doing a breadth first search for a given edge    
-    // the fundamental assumption is each edge does in fact belong to at least one shape        
-    // i.e. at least one cycle can be detected for any given edge
+    // assumption is made each edge does to 2 shapes (obv not true)        
+    // and it will try a max attempts to find 2 before it gives up
     let foundCycles = 0
     let pathEdges = [] // the edges for the found path(s)
     let theQueue = [] // the queue, obviously
@@ -141,7 +139,7 @@ function detectCyclesForMetaEdge(edge) {
     //insert at front of queue
     theQueue.unshift(...nextnn)
     let attempts = 0
-    while (foundCycles < 2 && current != undefined && attempts < 500) {
+    while (foundCycles < 2 && current != undefined && attempts < 500) {        
         if (current.node != edge.end) {
             //update edges visited and already in queue
             theQueue.map(mn => mn.edge).forEach(e => edgesExcluded.push(e))
