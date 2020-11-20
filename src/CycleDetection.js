@@ -21,10 +21,10 @@ function detectClosedShapes(graph) {
     }
     // account for overlapping shapes
     // use trimmed graph to find nodes within a shape and filter out
-    shapes = shapes.filter(s => {
-        let inside = trimmedGraph.nodes.filter(n => geometric.pointInPolygon(n.asPoint(), s.polygon.verts))
-        return inside.length == 0
-    })
+    // shapes = shapes.filter(s => {
+    //     let inside = trimmedGraph.nodes.filter(n => geometric.pointInPolygon(n.asPoint(), s.polygon.verts))
+    //     return inside.length == 0
+    // })
 
     return { trimmedGraph: trimmedGraph, metaNetwork: mnw, shapes: shapes }
 }
@@ -139,7 +139,7 @@ function detectCyclesForMetaEdge(edge) {
     //insert at front of queue
     theQueue.unshift(...nextnn)
     let attempts = 0
-    while (foundCycles < 2 && current != undefined && attempts < 500) {        
+    while (foundCycles < 2 && current != undefined && attempts < 1500) {        
         if (current.node != edge.end) {
             //update edges visited and already in queue
             theQueue.map(mn => mn.edge).forEach(e => edgesExcluded.push(e))

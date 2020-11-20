@@ -1,7 +1,7 @@
 class Shape {
     // vertices PVector[]
     constructor(vertices) {
-        this.polygon = new Polygon().forShape(vertices, .9)
+        this.polygon = new Polygon().forShape(vertices, 1)
     }
 
     display(color) {

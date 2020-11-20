@@ -164,7 +164,6 @@ let grid = [
 
 ]
 
-
 function constructGraph(steps) {
   let nodes = []
   let edges = []
@@ -210,7 +209,6 @@ function constructGraph(steps) {
     edges.push(new Edge(currentNode, nextNode))
   }
 }
-
 
 function duplicate(graph) {
   let idMapping = []
