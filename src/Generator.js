@@ -156,7 +156,6 @@ function addEdge(node, newNode, obj) {
     obj.bridges.push(edge)
   }
   newNode.id = obj.getNodeId()
-  print(newNode.id)
   obj.edges.push(edge)
   obj.nodes.push(newNode)
 

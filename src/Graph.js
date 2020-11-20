@@ -245,6 +245,7 @@ function removeDeadEnds(graph) {
     .filter(n => n.connections == 1)
     .forEach(current => {
       let neighbor = current.neighbors[0]
+      if(neighbor == null) return
       let next = true
       toBeRemoved.push(current)
       while (next) {

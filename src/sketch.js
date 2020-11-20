@@ -40,55 +40,52 @@ function draw() {
   // river.display()
   network.display({ showNodes: true })
   trimmedGraph.display()
-  // print(trimmedGraph)
+  // mnw.display()
 
-  shapes.forEach(s => s.display())
+  // shapes.forEach(s => s.display())
 
-  let ends = network.nodes.filter(n => {
-    return n.status == ActiveEnd &&
-      shapes.filter(s => geometric.pointInPolygon(n.asPoint(), s.polygon.verts)).length == 0
-  })
-
-  // print(shapes.filter(s => geometric.pointInPolygon(ends[18].asPoint() ,s.polygon.verts)).length == 0 )
-
-  let x = ends.reduce((total, node) => total + node.pos.x, 0) / ends.length
-  let y = ends.reduce((total, node) => total + node.pos.y, 0) / ends.length
-  let avarage = new Node(createVector(x, y))
-  // circle(avarage.pos.x, avarage.pos.y, 15, 15)
-  let sorted = sortNodesClockwise(avarage, ends).neighbors.map(n => n.node)
-  // print(sorted)
-  sorted.forEach((n, i) => {
-    if (i > 0) {
-      let prev = sorted[i - 1]
-      stroke('purple')
-      textSize(10)
-      // text(i, n.pos.x, n.pos.y )
-      // line(n.pos.x, n.pos.y, prev.pos.x, prev.pos.y)
-      // line(n.node.pos.x, n.node.pos.y, avarage.pos.x, avarage.pos.y)
-    }
-    if (i == 0) {
-      let prev = sorted[sorted.length - 1]
-      stroke('purple')
-      textSize(10)
-      // text(i, n.pos.x, n.pos.y )
-      // line(n.pos.x, n.pos.y, prev.pos.x, prev.pos.y)
-    }
-
-  })
+  connectOuterDeadEnds()
 
   // network.traceThroughRoutes()  
-  // mnw.display()
   // mnw.selectEdge(33)  
 
   if (networkSettings.showCurves) {
     responseCurves.display()
   }
 
-
-
   // networkRules[NextToIntersection].debugDraw()
   // network.stats()   
   noLoop()
+}
+
+function connectOuterDeadEnds() {
+  let ends = network.nodes.filter(n => {
+    return n.status == ActiveEnd &&
+      shapes.filter(s => geometric.pointInPolygon(n.asPoint(), s.polygon.verts)).length == 0
+  })
+
+  let x = ends.reduce((total, node) => total + node.pos.x, 0) / ends.length
+  let y = ends.reduce((total, node) => total + node.pos.y, 0) / ends.length
+  let avarage = new Node(createVector(x, y))
+  // circle(avarage.pos.x, avarage.pos.y, 15, 15)
+  let sorted = sortNodesClockwise(avarage, ends).neighbors.map(n => n.node)
+  sorted.forEach((n, i) => {
+    if (i > 0) {
+      let prev = sorted[i - 1]
+      stroke('purple')
+      textSize(10)
+      // text(i, n.pos.x, n.pos.y )
+      line(n.pos.x, n.pos.y, prev.pos.x, prev.pos.y)
+      // line(n.pos.x, n.pos.y, avarage.pos.x, avarage.pos.y)
+    }
+    if (i == 0) {
+      let prev = sorted[sorted.length - 1]
+      stroke('purple')
+      textSize(10)
+      // text(i, n.pos.x, n.pos.y )
+      line(n.pos.x, n.pos.y, prev.pos.x, prev.pos.y)
+    }
+  })
 }
 
 function generatePlots(graph) {
@@ -122,7 +119,7 @@ function generateShapes() {
   shapes = result.shapes
 
   if (networkSettings.hasRiver) {
-    shapes = shapes.filter(s => !geometric.polygonIntersectsPolygon(s.polygon, river.poly))
+    shapes = shapes.filter(s => !geometric.polygonIntersectsPolygon(s.polygon.verts, river.poly))
   }
 }
 

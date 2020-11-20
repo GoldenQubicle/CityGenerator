@@ -1,16 +1,16 @@
 function detectClosedShapes(graph) {
-    print("duplicate", duplicate(graph))
+    // print("duplicate", duplicate(graph))
     let trimmedGraph = removeDeadEnds(duplicate(graph))    
     trimmedGraph.display = function () {
         this.edges.forEach(e => e.display('lightblue'))
         this.nodes.forEach(n => n.display())
     }
     print("trimmed graph")
-    print("nodes:", trimmedGraph.nodes.length, "edges:", trimmedGraph.edges.length)
+    print("nodes:", trimmedGraph.nodes.length, "edges:", trimmedGraph.edges.length, trimmedGraph)
 
     let mnw = createMetaNetworkFromGraph(trimmedGraph)
     print("meta network")
-    print("nodes:", mnw.metaNodes.length, "edges:", mnw.metaEdges.length)
+    print("nodes:", mnw.metaNodes.length, "edges:", mnw.metaEdges.length, mnw)
     let shapes = detectCyclesInMetaNetwork(mnw, graph.nodes)
     
     // soo interesting issue;
@@ -155,7 +155,7 @@ function detectCyclesInMetaNetwork(mnw, nodes) {
         if (foundShapes[me.id].length < me.shapes) {
             // print("outer while for edge ", me.id)
             let cycles = detectCyclesForMetaEdge(me, foundCycles[me.id])
-            cycles.forEach(cycle => {
+            cycles.forEach(cycle => {                
                 let shape = createShapeFromPathNodes(pathEdgesToNodes(cycle))
                 let inside = mnw.metaNodes.filter(n => geometric.pointInPolygon(n.asPoint(), shape.polygon))
 
