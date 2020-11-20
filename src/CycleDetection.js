@@ -19,12 +19,12 @@ function detectClosedShapes(graph) {
     for (group of groups) {
         shapes.push(group[1][0])
     }
-    //
+
     shapes = shapes.filter(s => {
-        let inside = mnw.metaNodes.filter(n => geometric.pointInPolygon(n.asPoint(), s.polygon.verts))
+        let inside = trimmedGraph.nodes.filter(n => geometric.pointInPolygon(n.asPoint(), s.polygon.verts))
         return inside.length == 0
     })  
-
+   
 
     return { trimmedGraph: trimmedGraph, metaNetwork: mnw, shapes: shapes }
 }
