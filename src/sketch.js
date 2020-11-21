@@ -38,13 +38,17 @@ function draw() {
   background('#2d5425')
 
   river.display()
-  // network.display({ showNodes: true })
+  network.display({ showNodes: false })
 
-  mnw.display()
+  // mnw.display()
   // trimmedGraph.display()  
   shapes.forEach(s => s.display())
-  print(shapes)
   // connectOuterDeadEnds()
+
+  let points = network.nodes.map(n => n.asPoint())
+  let hull = geometric.polygonHull(points)
+  let p = new Polygon(hull)
+  p.display()
 
   // network.traceThroughRoutes()  
   // mnw.selectEdge(33)  
@@ -112,8 +116,11 @@ function generateShapes() {
   trimmedGraph = []
   shapes = []
   let graph = { nodes: network.nodes, edges: network.edges }
-  print("graph:" , graph)
+  print("network graph | " , graph)
+  let detect = "shape detection"
+  console.time(detect)
   let result = detectClosedShapes(graph)
+  console.timeEnd(detect)
   trimmedGraph = result.trimmedGraph
   mnw = result.metaNetwork
   shapes = result.shapes
@@ -134,10 +141,10 @@ function generateNetwork() {
   if (networkSettings.hasRiver) {
     river.generate()
   }
-  let nwg = "nwg"
-  console.time(nwg)
+  let gen = "network generation"
+  console.time(gen)
   network.generate()
-  console.timeEnd(nwg)
+  console.timeEnd(gen)
 }
 
 function keyPressed() {

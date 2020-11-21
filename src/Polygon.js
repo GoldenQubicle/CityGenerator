@@ -6,7 +6,11 @@ class Polygon {
     leftUp
     rightDown
     clipperScale = 10000
-    
+        
+        constructor(vertices){
+            this.verts = vertices
+        }
+
     // vertices PVector[]
     forShape(vertices, scale) {
         this.verts = vertices.map(v => [v.x, v.y])

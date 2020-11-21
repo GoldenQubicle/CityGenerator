@@ -1,12 +1,10 @@
 function detectClosedShapes(graph) {
 
     let trimmedGraph = removeDeadEnds(duplicate(graph))
-    print("trimmed graph")
-    print("nodes:", trimmedGraph.nodes.length, "edges:", trimmedGraph.edges.length, trimmedGraph)
+    print("trimmed graph | ", trimmedGraph)
 
     let mnw = createMetaNetworkFromGraph(trimmedGraph)
-    print("meta network")
-    print("nodes:", mnw.metaNodes.length, "edges:", mnw.metaEdges.length, mnw)
+    print("meta graph    | ", mnw)
 
     let shapes = detectCyclesInMetaNetwork(mnw, trimmedGraph)
 
@@ -65,12 +63,12 @@ function createMetaNetworkFromGraph(graph) {
         id++
     })
     return {
-        metaNodes,
-        metaEdges,
+        nodes : metaNodes,
+        edges : metaEdges,
         display: function () {
-            this.metaEdges.forEach(e => e.display('white'))
-            this.metaNodes.forEach(n => n.display())
-            this.metaEdges.forEach(e => e.verts.forEach(v => {
+            this.nodes.forEach(n => n.display())
+            this.edges.forEach(e => e.display('white'))
+            this.edges.forEach(e => e.verts.forEach(v => {
                 // fill('grey')
                 // circle(v.pos.x, v.pos.y, 5)
             }))
@@ -79,15 +77,15 @@ function createMetaNetworkFromGraph(graph) {
             if (selectedEdge < 0) {
                 return
             }
-            this.metaEdges[selectedEdge].display('purple')
-            this.metaEdges[selectedEdge].verts.forEach(v => {
+            this.edges[selectedEdge].display('purple')
+            this.edges[selectedEdge].verts.forEach(v => {
                 noFill()
                 circle(v.pos.x, v.pos.y, 5)
             })
-            let p = this.metaEdges[selectedEdge].start.pos
+            let p = this.edges[selectedEdge].start.pos
             stroke('green')
             circle(p.x, p.y, 10)
-            print(this.metaEdges[selectedEdge])
+            print(this.edges[selectedEdge])
         }
     }
 }
@@ -97,9 +95,9 @@ function detectCyclesInMetaNetwork(mnw, trimmed) {
     // a cycle refers to closed shape in the graph, i.e. the metanetwork 
     // the actual contents of a cycle is defined as a path shape
     // which is a collection of path edges, gathered in the BFS 
-    let foundShapes = mnw.metaEdges.map(me => [])
+    let foundShapes = mnw.edges.map(me => [])
     //TODO optimize, no need to check an edge who's already part of 2 shapes after all    
-    mnw.metaEdges.forEach(me => {
+    mnw.edges.forEach(me => {
         let cycles = detectCyclesForMetaEdge(me)
         cycles.forEach(cycle => {
             if (cycle != null) {
@@ -188,6 +186,7 @@ function getOtherMetaNeighbors(current, edges) {
     })
     return meta
 }
+
 function createShapeFromPathNodes(nodes) {
     // need to sort nodes in order to draw polygon correctly
     // to do so we simply trace neighbors
@@ -202,8 +201,7 @@ function createShapeFromPathNodes(nodes) {
             .filter(nn => nodes.includes(nn))
         current = neighbor
         neighbor = next[0]
-    }    
-    
+    }
     return new Shape(sorted.map(n => n.pos).flat())
 }
 
