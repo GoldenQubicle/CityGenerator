@@ -9,7 +9,7 @@ let plots = []
 let qtPlots
 let clipper
 function preload() {
-  networkSettings = loadJSON("data/nws_grid.json")
+  networkSettings = loadJSON("data/nws_default.json")
 }
 
 function setup() {
@@ -38,12 +38,12 @@ function draw() {
   background('#2d5425')
 
   river.display()
-  network.display({ showNodes: true })
+  // network.display({ showNodes: true })
 
-  // mnw.display()
+  mnw.display()
   // trimmedGraph.display()  
   shapes.forEach(s => s.display())
-
+  print(shapes)
   // connectOuterDeadEnds()
 
   // network.traceThroughRoutes()  

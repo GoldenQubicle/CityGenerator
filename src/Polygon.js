@@ -68,7 +68,7 @@ class Polygon {
 
     display(color, bb) {
         this.drawShape(color)
-        // this.drawCenter()
+        this.drawCenter()
         if (bb) {
             this.drawBoundingBox()
         }
@@ -91,10 +91,10 @@ class Polygon {
 
     drawCenter() {
         fill('blue')
-        circle(this.centerBB.x, this.centerBB.y, 3)
-        // let centroid = geometric.polygonCentroid(this.vertices)
-        // fill('red')
-        // circle(centroid[0], centroid[1], 1)
+        // circle(this.centerBB.x, this.centerBB.y, 3)
+        let centroid = geometric.polygonCentroid(this.verts)
+        fill('DarkKhaki')
+        circle(centroid[0], centroid[1], 3)
     }
 
     drawBoundingBox() {

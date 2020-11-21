@@ -54,7 +54,7 @@ function createMetaNetworkFromGraph(graph) {
     let id = 0
     metaEdges = []
     edgePairs.forEach(pair => {
-        if(pair.length > 2) throw "edge pair with more than 2 entries"
+        if (pair.length > 2) throw "edge pair with more than 2 entries"
         pair[0].start.replaceNeighbor(pair[0].end, pair[1].start)
         pair[1].start.replaceNeighbor(pair[1].end, pair[0].start)
         pair[0].end = pair[1].start
@@ -103,8 +103,11 @@ function detectCyclesInMetaNetwork(mnw, trimmed) {
         let cycles = detectCyclesForMetaEdge(me)
         cycles.forEach(cycle => {
             if (cycle != null) {
-                let shape = createShapeFromPathNodes(pathEdgesToNodes(cycle))
+                // get all the nodes which form the path, and filter out duplicates
                 let nodes = cycle.map(e => e.verts.flat()).flat()
+                nodes = nodes.filter(onlyUnique)
+                let shape = createShapeFromPathNodes(nodes)
+                // let nodes = cycle.map(e => e.verts.flat()).flat()
                 // STILL not quite.. need to use trimmed graph edges..?
                 let otherNodes = trimmed.nodes.filter(n => !nodes.includes(n))
                 let inside = otherNodes.filter(n => geometric.pointInPolygon(n.asPoint(), shape.polygon.verts))
@@ -117,8 +120,10 @@ function detectCyclesInMetaNetwork(mnw, trimmed) {
     })
     let shapes = foundShapes.flat()
     // account for duplicate shapes
-    // use sum of their vertices x & y as grouping key
-    let groups = groupBy(shapes, s => s.polygon.verts.reduce((acc, v) => acc += (v[0] + v[1], 0)))
+    // use sum of their vertices x & y + pluscenter bounding box as grouping key
+    let groups = groupBy(shapes, s => (s.polygon.verts.reduce((acc, v) => acc += (v[0] + v[1]), 0)
+        + (s.polygon.centerBB.x * s.polygon.centerBB.y)).toFixed())
+
     shapes = []
     for (group of groups) {
         shapes.push(group[1][0])
@@ -183,23 +188,23 @@ function getOtherMetaNeighbors(current, edges) {
     })
     return meta
 }
+function createShapeFromPathNodes(nodes) {
+    // need to sort nodes in order to draw polygon correctly
+    // to do so we simply trace neighbors
+    let sorted = []
+    let current = nodes[0]
+    let neighbor = current.neighbors.filter(nn => nodes.includes(nn))[0]
 
-function pathEdgesToNodes(pathEdges) {
-    // get all the nodes which form the path, and filter out duplicates
-    let nodes = pathEdges.map(e => e.verts.map(v => v)).flat()
-    nodes = nodes.filter(onlyUnique)
-    // to construct a shape we need to make sure the vertices are in clockwise order
-    // thus we need to sort the nodes, and in order to sort we need to have a point of reference
-    // thus compute the avarage x & y position and create a new node as said point of reference
-    let x = nodes.reduce((total, node) => total + node.pos.x, 0) / nodes.length
-    let y = nodes.reduce((total, node) => total + node.pos.y, 0) / nodes.length
-    let avarage = new Node(createVector(x, y))
-    return sortNodesClockwise(avarage, nodes).neighbors
-}
-
-function createShapeFromPathNodes(pathNodes) {
-    let verts = pathNodes.map(n => n.node.pos).flat()
-    return new Shape(verts)
+    while (sorted.length != nodes.length) {
+        sorted.push(current)
+        let next = neighbor
+            .getOtherNeighbors(current)
+            .filter(nn => nodes.includes(nn))
+        current = neighbor
+        neighbor = next[0]
+    }    
+    
+    return new Shape(sorted.map(n => n.pos).flat())
 }
 
 
