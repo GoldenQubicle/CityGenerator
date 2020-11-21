@@ -37,11 +37,11 @@ function setup() {
 function draw() {
   background('#2d5425')
 
-  // river.display()
+  river.display()
   network.display({ showNodes: true })
-  trimmedGraph.display()
-  // mnw.display()
 
+  // mnw.display()
+  // trimmedGraph.display()  
   shapes.forEach(s => s.display())
 
   // connectOuterDeadEnds()

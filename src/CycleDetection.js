@@ -8,11 +8,7 @@ function detectClosedShapes(graph) {
     print("meta network")
     print("nodes:", mnw.metaNodes.length, "edges:", mnw.metaEdges.length, mnw)
 
-    // the cycle detection is quite aggresive and tries to find 2 shapes for a given edge
-    // consequently duplicate shapes will be found and need to filter out
-    // hence to additional filter passes are needed to get a set of unique closed shapes
     let shapes = detectCyclesInMetaNetwork(mnw, trimmedGraph)
-      
 
     return { trimmedGraph: trimmedGraph, metaNetwork: mnw, shapes: shapes }
 }
@@ -53,7 +49,8 @@ function createMetaNetworkFromGraph(graph) {
     // the unique key is quite elaborate to combat edge cases (mostly in a grid) wherein the x & y yield to same outcome
     // recall every start of an edge already is a new meta node
     // thus for every pair of edges, swap the dead-ends for the start of the other and take the 1st edge
-    let edgePairs = groupBy(metaEdges, e => (abs(e.midPoint.x) + 7 / abs(e.midPoint.y) - 7 + e.verts.length + e.verts.reduce((acc, v) => acc += v.id, 0)).toFixed(5))
+    let edgePairs = groupBy(metaEdges, e => (abs(e.midPoint.x) + 7 / abs(e.midPoint.y) - 7 + e.verts.length + e.verts.reduce((acc, v) => acc += v.id / 3, 0)).toFixed(5))
+
     let id = 0
     metaEdges = []
     edgePairs.forEach(pair => {
@@ -72,6 +69,10 @@ function createMetaNetworkFromGraph(graph) {
         display: function () {
             this.metaEdges.forEach(e => e.display('white'))
             this.metaNodes.forEach(n => n.display())
+            this.metaEdges.forEach(e => e.verts.forEach(v => {
+                // fill('grey')
+                // circle(v.pos.x, v.pos.y, 5)
+            }))
         },
         selectEdge: function (selectedEdge) {
             if (selectedEdge < 0) {
@@ -102,7 +103,7 @@ function detectCyclesInMetaNetwork(mnw, trimmed) {
         cycles.forEach(cycle => {
             if (cycle != null) {
                 let shape = createShapeFromPathNodes(pathEdgesToNodes(cycle))
-                let nodes = cycle.map(e => e.verts.flat()).flat()  
+                let nodes = cycle.map(e => e.verts.flat()).flat()
                 // STILL not quite.. need to use trimmed graph edges..?
                 let otherNodes = trimmed.nodes.filter(n => !nodes.includes(n))
                 let inside = otherNodes.filter(n => geometric.pointInPolygon(n.asPoint(), shape.polygon.verts))
@@ -120,7 +121,13 @@ function detectCyclesInMetaNetwork(mnw, trimmed) {
     shapes = []
     for (group of groups) {
         shapes.push(group[1][0])
-    } 
+    }
+    // eh this works, however what counts as intersection is determined by the shape size
+    // meaning too small and it'll start filtering out legit shapes, too large and it'll skip overlapping
+    // shapes = shapes.filter(s =>{
+    //     let intersect = trimmed.edges.filter(e => geometric.lineIntersectsPolygon(e.asLine(), geometric.polygonScale(s.polygon.verts, .8)))
+    //     return intersect == 0
+    // } )
     return shapes
 }
 
@@ -141,7 +148,7 @@ function detectCyclesForMetaEdge(edge) {
     //insert at front of queue
     theQueue.unshift(...nextnn)
     let attempts = 0
-    while (foundCycles < 2 && current != undefined && attempts < 1500) {
+    while (foundCycles < 2 && current != undefined && attempts < 350) {
         if (current.node != edge.end) {
             //update edges visited and already in queue
             theQueue.map(mn => mn.edge).forEach(e => edgesExcluded.push(e))
@@ -158,6 +165,8 @@ function detectCyclesForMetaEdge(edge) {
             theQueue = []
             //exclude the edges from the 1st shape from the search in order to find the 2nd shape
             edgesExcluded = current.path.map(e => e).flat()
+            edgesExcluded.push(current.edge)
+
             // finally reset the current object to start
             current = { node: edge.start, edge: edge, path: [edge] }
         }
