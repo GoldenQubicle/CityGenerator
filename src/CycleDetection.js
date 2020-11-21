@@ -54,6 +54,7 @@ function createMetaNetworkFromGraph(graph) {
     let id = 0
     metaEdges = []
     edgePairs.forEach(pair => {
+        if(pair.length > 2) throw "edge pair with more than 2 entries"
         pair[0].start.replaceNeighbor(pair[0].end, pair[1].start)
         pair[1].start.replaceNeighbor(pair[1].end, pair[0].start)
         pair[0].end = pair[1].start

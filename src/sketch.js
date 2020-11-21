@@ -9,7 +9,7 @@ let plots = []
 let qtPlots
 let clipper
 function preload() {
-  networkSettings = loadJSON("data/nws_default.json")
+  networkSettings = loadJSON("data/nws_grid.json")
 }
 
 function setup() {
