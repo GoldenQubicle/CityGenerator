@@ -11,6 +11,12 @@ class Node {
         this.setStatus()
     }
 
+    clone(){
+        let newNode = new Node(createVector(this.pos.x, this.pos.y))
+        newNode.id = this.id
+        return newNode
+    }
+
     heading(){
         return this.pos.heading()
     }
@@ -91,6 +97,7 @@ class Node {
         // circle(this.pos.x, this.pos.y, 2)
         noStroke()
         fill('white')
+        textSize(12)
         // text(this.id, this.pos.x, this.pos.y)
         if (this.connections == 1) {
             if (this.isActive)
@@ -108,7 +115,7 @@ class Node {
 
         if (this.connections == 3) {
             if (this.isActive)
-                fill('green')
+                fill('red')
             else
                 fill('DarkGreen')
 
@@ -130,7 +137,7 @@ class Node {
             stroke('white')
         }
 
-        circle(this.pos.x, this.pos.y, 5)
+        circle(this.pos.x, this.pos.y, 3)
         // text(this.connections, this.pos.x, this.pos.y)
 
     }

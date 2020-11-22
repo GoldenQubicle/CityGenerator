@@ -21,6 +21,10 @@ class Edge {
     return [[this.start.pos.x, this.start.pos.y], [this.end.pos.x, this.end.pos.y]]
   }
 
+  getAngel(){
+    return this.start.pos.angleBetween(this.end.pos)
+  }
+
   replaceNode(nodeOld, nodeNew) {
     if (this.start == nodeOld) {
       this.end.replaceNeighbor(this.start, nodeNew)
@@ -80,7 +84,7 @@ class Edge {
     fill('white')    
     noStroke()
     if (this.id != undefined) {
-      text(this.id, m.x, m.y)
+      // text(this.id, m.x, m.y)
     }
 
     if (color != undefined)

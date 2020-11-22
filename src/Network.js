@@ -8,6 +8,7 @@ class Network {
     iterations = networkSettings.iterations
     spawnPoints
     it
+    nodeId = -1
 
     constructor(width, height) {
         this.width = width
@@ -24,6 +25,11 @@ class Network {
             height: height,
             maxElements: this.qtMax
         })
+    }
+
+    getNodeId(){
+        this.nodeId++
+        return this.nodeId
     }
 
     generate() {
@@ -167,11 +173,12 @@ class Network {
             }
             // NetworkRules[n.status].debugDraw(n)
         })
-        this.bridges.forEach(b =>{
-            stroke('black')
-            strokeWeight(3)
-            line(b.start.pos.x, b.start.pos.y, b.end.pos.x, b.end.pos.y)
-        })
+        // this.bridges.forEach(b =>{
+        //     stroke('black')
+        //     strokeWeight(3)
+        //     line(b.start.pos.x, b.start.pos.y, b.end.pos.x, b.end.pos.y)
+        // })
+        // this.traceThroughRoutes()
     }
 
     stats() {

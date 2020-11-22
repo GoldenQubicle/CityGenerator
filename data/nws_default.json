@@ -1,9 +1,9 @@
 {
   "showCurves": false,
   "hasRandomSeed": false,
-  "seed": 478000213157004,
+  "seed": 455667520296897500,
   "hasRiver": false,
-  "iterations": 47,
+  "iterations": 60,
   "iterations_CoT": 75,
   "centerMargin": 475,
   "numberOfSeeds": [

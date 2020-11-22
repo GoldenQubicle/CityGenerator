@@ -1,4 +1,3 @@
-
 /*
   G R A H P 
 
@@ -211,6 +210,29 @@ function constructGraph(steps) {
   }
 }
 
+function duplicate(graph) {
+  let idMapping = []
+  //map nodes ids and their neighbors ids to reconstruct the graph 
+  graph.nodes.forEach(n => {
+    idMapping[n.id] = n.neighbors.map(nn => nn.id)
+  })
+  let newNodes = graph.nodes.map(n => n.clone())
+  let newEdges = []
+  // print(idMapping)
+  newNodes.forEach(node => {
+    idMapping[node.id].forEach(id => {
+      let neighbor = newNodes.filter(n => n.id == id)[0]
+      //silly stuff coming up
+      //first of all create a new edge which will register nodes as neighbors to each other
+      //however since iterating over all the nodes the result is duplicate neighbor registrations (and edges!)
+      //consequently need to unregister the current node from the neighbor (other way around doesn't work for some reason!)
+      newEdges.push(new Edge(node, neighbor))
+      neighbor.delNeighbor(node)
+    })
+  })
+  return { nodes: newNodes, edges: newEdges }
+}
+
 function removeDeadEnds(graph) {
   let toBeRemoved = []
   // go over all nodes with 1 connection
@@ -220,10 +242,9 @@ function removeDeadEnds(graph) {
     .filter(n => n.connections == 1)
     .forEach(current => {
       let neighbor = current.neighbors[0]
+      if (neighbor == null) return
       let next = true
-
       toBeRemoved.push(current)
-
       while (next) {
         if (neighbor.connections == 2) {
           toBeRemoved.push(neighbor)
@@ -237,7 +258,14 @@ function removeDeadEnds(graph) {
       }
     })
   // filter out the nodes to be removed
-  graph.nodes = graph.nodes.filter(n => !toBeRemoved.includes(n))
-  graph.edges = graph.edges.filter(s => !toBeRemoved.includes(s.start) && !toBeRemoved.includes(s.end))
-  return graph
+  let nodes = graph.nodes.filter(n => !toBeRemoved.includes(n))
+  let edges = graph.edges.filter(s => !toBeRemoved.includes(s.start) && !toBeRemoved.includes(s.end))
+
+  return {
+    nodes, edges,
+    display: function () {
+      this.edges.forEach(e => e.display('lightblue'))
+      this.nodes.forEach(n => n.display())
+    }
+  }
 }

@@ -5,6 +5,7 @@ class River {
     zone = []
     it = 0
     offsets = [-12, 12]
+    nodeId = -1
 
     constructor(width, height) {
         this.width = width
@@ -39,6 +40,7 @@ class River {
             let margin = 50
             let x = random(margin, this.width - margin)
             let nn = new Node(createVector(x, 0))
+            nn.id = this.getNodeId()
             this.nodes.push(nn)
         }
       
@@ -97,6 +99,11 @@ class River {
 
     checkBounds(node) {
         return node.pos.y > this.height || node.pos.x < 0 || node.pos.x > this.width
+    }
+
+    getNodeId(){
+        this.nodeId++
+        return this.nodeId
     }
 
     getConfig() {

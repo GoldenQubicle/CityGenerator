@@ -1,3 +1,5 @@
 https://github.com/HarryStevens/geometric
 https://github.com/Pomax/bezierjs
 https://github.com/elbywan/quadtree-lib
+https://github.com/xaviergonz/js-angusj-clipper
+https://sourceforge.net/p/jsclipper/wiki/documentation/#table-of-contents
