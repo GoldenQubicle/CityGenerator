@@ -28,7 +28,7 @@ function setup() {
   let graph = { nodes: network.nodes, edges: network.edges }
 
   generateShapes()
-  generatePlots(graph)
+  generatePlots()
 
   clipper = new ClipperLib.Clipper();
 
@@ -48,10 +48,9 @@ function draw() {
   let points = network.nodes.map(n => n.asPoint())
   let hull = geometric.polygonHull(points)
   let p = new Polygon(hull)
-  p.display()
+  // p.display()
 
-  // network.traceThroughRoutes()  
-  // mnw.selectEdge(33)  
+  // qtPlots.each(qt => qt.plot.display())
 
   if (networkSettings.showCurves) {
     responseCurves.display()
@@ -92,7 +91,8 @@ function connectOuterDeadEnds() {
   })
 }
 
-function generatePlots(graph) {
+function generatePlots() {
+  let graph = { nodes: network.nodes, edges: network.edges }
   qtPlots = new Quadtree({
     width: this.width,
     height: this.height,
@@ -168,7 +168,7 @@ function keyReleased() {
 function mouseClicked() {
   network.iterate()
   generateShapes()
-
+  generatePlots()
   loop()
 }
 

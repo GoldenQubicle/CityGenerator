@@ -6,5 +6,6 @@ class Shape {
 
     display(color) {
         this.polygon.display(color, false)
+        // text(this.id, this.polygon.centerBB.x, this.polygon.centerBB.y)
     }
 }

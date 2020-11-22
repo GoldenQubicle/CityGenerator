@@ -96,6 +96,7 @@ function detectCyclesInMetaNetwork(mnw, trimmed) {
     // the actual contents of a cycle is defined as a path shape
     // which is a collection of path edges, gathered in the BFS 
     let foundShapes = mnw.edges.map(me => [])
+    let shapeId = 0
     //TODO optimize, no need to check an edge who's already part of 2 shapes after all    
     mnw.edges.forEach(me => {
         let cycles = detectCyclesForMetaEdge(me)
@@ -103,13 +104,14 @@ function detectCyclesInMetaNetwork(mnw, trimmed) {
             if (cycle != null) {
                 // get all the nodes which form the path, and filter out duplicates
                 let nodes = cycle.map(e => e.verts.flat()).flat()
-                nodes = nodes.filter(onlyUnique)
-                let shape = createShapeFromPathNodes(nodes)
-                // let nodes = cycle.map(e => e.verts.flat()).flat()
+                let shape = createShapeFromPathNodes(nodes.filter(onlyUnique))                
                 // STILL not quite.. need to use trimmed graph edges..?
+                // also this can be optimized by using a quad tree, no need to go over all nodes in the trimmed graph
                 let otherNodes = trimmed.nodes.filter(n => !nodes.includes(n))
                 let inside = otherNodes.filter(n => geometric.pointInPolygon(n.asPoint(), shape.polygon.verts))
                 if (inside == 0) {
+                    shape.id = shapeId
+                    shapeId++
                     foundShapes[me.id].push(shape)
                     cycle.forEach(e => foundShapes[e.id].push(shape))
                 }
@@ -120,7 +122,7 @@ function detectCyclesInMetaNetwork(mnw, trimmed) {
     // account for duplicate shapes
     // use sum of their vertices x & y + pluscenter bounding box as grouping key
     let groups = groupBy(shapes, s => (s.polygon.verts.reduce((acc, v) => acc += (v[0] + v[1]), 0)
-        + (s.polygon.centerBB.x * s.polygon.centerBB.y)).toFixed())
+        + (s.polygon.centerBB.x * s.polygon.centerBB.y)).toFixed(5))
 
     shapes = []
     for (group of groups) {

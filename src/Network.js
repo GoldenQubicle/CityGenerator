@@ -178,6 +178,7 @@ class Network {
         //     strokeWeight(3)
         //     line(b.start.pos.x, b.start.pos.y, b.end.pos.x, b.end.pos.y)
         // })
+        // this.traceThroughRoutes()
     }
 
     stats() {
